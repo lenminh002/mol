@@ -325,7 +325,7 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
 }
 
 export function CellScene() {
-  const { result, highlight, isolateOnHover, view, selectTarget, setHighlight } = useSim();
+  const { result, highlight, isolateOnHover, showLabels, view, selectTarget, setHighlight } = useSim();
   const [membraneOpacity, setMembraneOpacity] = useState(100);
   const controls = useRef<CameraControls>(null);
   const container = useRef<HTMLDivElement>(null);
@@ -484,7 +484,7 @@ export function CellScene() {
       </Canvas>
       <div ref={tooltip} role="status" className="pointer-events-none absolute left-0 top-0 z-20 whitespace-nowrap rounded border bg-card px-2.5 py-1.5 text-xs opacity-0 shadow-sm" />
       {targets.map(({ target, position, offTarget }, i) => (
-        <button key={target.name} ref={(el) => { labels.current[i] = el; }} onMouseEnter={() => setHighlight(target.cell_location)} onMouseLeave={() => setHighlight(null)} onClick={() => focus(deformPoint(position, squish, surfaces[i] ? 1 : 0.18, surfaces[i] ? 1 : 1.8), 0.3, target.name)} className={`absolute left-0 top-0 z-10 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${offTarget ? "border-dashed text-muted-foreground" : ""} ${view === "cell" ? "" : "hidden"}`}>
+        <button key={target.name} ref={(el) => { labels.current[i] = el; }} onMouseEnter={() => setHighlight(target.cell_location)} onMouseLeave={() => setHighlight(null)} onClick={() => focus(deformPoint(position, squish, surfaces[i] ? 1 : 0.18, surfaces[i] ? 1 : 1.8), 0.3, target.name)} className={`absolute left-0 top-0 z-10 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${offTarget ? "border-dashed text-muted-foreground" : ""} ${view === "cell" && showLabels ? "" : "hidden"}`}>
           {offTarget && <span className="mr-1.5 text-[9px] uppercase tracking-wide">off-target</span>}{target.name}{target.pdb_id && <span className="ml-1.5 font-mono text-[9px] text-muted-foreground">{target.pdb_id}</span>}
         </button>
       ))}
@@ -496,7 +496,7 @@ export function CellScene() {
           onClick={() => focus(deformPoint(position, squish, organelle === "membrane" ? 1 : 0.18, organelle === "membrane" ? 1 : 1.8), 0.5)}
           onMouseEnter={() => setHighlight(organelle)}
           onMouseLeave={() => setHighlight(null)}
-          className={`absolute left-0 top-0 z-10 max-w-56 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-left text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${view === "cell" ? "" : "hidden"}`}
+          className={`absolute left-0 top-0 z-10 max-w-56 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-left text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${view === "cell" && showLabels ? "" : "hidden"}`}
           style={{ borderLeft: `3px solid ${DIRECTION_TINT[effect.direction]}`, visibility: "hidden" }}
         >
           <span className="font-medium">{ORGANELLES[organelle].label} {DIRECTION_ARROW[effect.direction]}</span>

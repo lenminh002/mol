@@ -80,7 +80,7 @@ export function DrugPanel() {
   return (
     <aside
       className={cn(
-        "relative min-w-0 overflow-hidden rounded-md border bg-card transition-[width] duration-300 ease-in-out",
+        "relative min-w-0 overflow-hidden rounded-md bg-transparent transition-[width] duration-300 ease-in-out",
         collapsed ? "lg:w-11" : "lg:w-[300px]",
       )}
     >

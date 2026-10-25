@@ -22,6 +22,7 @@ interface SimState {
   selectedTarget: string | null;
   highlight: string | null;
   isolateOnHover: boolean;
+  showLabels: boolean;
   prompt: string;
   messages: ChatMessage[]; // follow-up thread; survives reset() so it continues across a confirmed re-simulation
   chatPending: boolean;
@@ -43,6 +44,7 @@ interface SimState {
   selectTarget: (name: string | null) => void;
   setHighlight: (id: string | null) => void;
   setIsolateOnHover: (on: boolean) => void;
+  setShowLabels: (on: boolean) => void;
 }
 
 export const useSim = create<SimState>((set) => ({
@@ -57,6 +59,7 @@ export const useSim = create<SimState>((set) => ({
   selectedTarget: null,
   highlight: null,
   isolateOnHover: false,
+  showLabels: true,
   prompt: "",
   messages: [],
   chatPending: false,
@@ -149,6 +152,7 @@ export const useSim = create<SimState>((set) => ({
   selectTarget: (name) => set({ selectedTarget: name, view: name ? "molecule" : "cell" }),
   setHighlight: (highlight) => set({ highlight }),
   setIsolateOnHover: (isolateOnHover) => set({ isolateOnHover }),
+  setShowLabels: (showLabels) => set({ showLabels }),
 }));
 
 // Dev-only handle for poking the store from the browser console.
