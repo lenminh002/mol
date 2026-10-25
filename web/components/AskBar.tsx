@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ArrowUp, Loader2, Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUp, Loader2, Mic, Square } from "lucide-react";
 import { useRunSimulation } from "@/lib/run";
 import { useSim } from "@/lib/store";
 
@@ -21,27 +21,89 @@ const randomSuggestion = (not?: string) => {
   return pool[Math.floor(Math.random() * pool.length)];
 };
 
+// Minimal typing for the browser Web Speech API (not in lib.dom everywhere).
+type Recognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+const getRecognitionCtor = (): (new () => Recognition) | undefined => {
+  const w = window as unknown as Record<string, new () => Recognition>;
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition;
+};
+
 export function AskBar() {
   const { status, prompt, setPrompt } = useSim();
   const run = useRunSimulation();
   const [suggestion, setSuggestion] = useState(SUGGESTIONS[0]);
+  const [supported, setSupported] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recRef = useRef<Recognition | null>(null);
 
   // Random pick happens after mount so server and client markup match.
-  useEffect(() => setSuggestion(randomSuggestion()), []);
+  useEffect(() => {
+    setSuggestion(randomSuggestion());
+    setSupported(!!getRecognitionCtor());
+    return () => recRef.current?.stop();
+  }, []);
+
+  const toggleMic = () => {
+    if (recRef.current && listening) {
+      recRef.current.stop();
+      return;
+    }
+    const Ctor = getRecognitionCtor();
+    if (!Ctor) return;
+    const rec = new Ctor();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = navigator.language || "en-US";
+    const base = prompt.trim();
+    rec.onresult = (e) => {
+      const text = Array.from(e.results, (r) => r[0].transcript).join("").trim();
+      setPrompt([base, text].filter(Boolean).join(" "));
+    };
+    rec.onend = () => {
+      setListening(false);
+      recRef.current = null;
+    };
+    rec.onerror = () => setListening(false);
+    recRef.current = rec;
+    rec.start();
+    setListening(true);
+  };
 
   const running = status === "running";
   const canSend = !running && !!prompt.trim();
-  const send = () => canSend && run({ prompt });
+  const send = () => {
+    if (!canSend) return;
+    recRef.current?.stop();
+    run({ prompt });
+  };
 
   return (
     <div className="sticky bottom-0 shrink-0 pb-1">
       <div className="mx-auto flex w-full max-w-3xl items-end gap-1 rounded-[28px] border bg-card py-2 pl-2 pr-2 shadow-[0_4px_24px_-8px_rgba(29,27,24,0.25)]">
         <button
           type="button"
-          aria-label="Add"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
+          aria-label={listening ? "Stop dictation" : "Start dictation"}
+          aria-pressed={listening}
+          disabled={!supported}
+          title={supported ? undefined : "Speech recognition isn't supported in this browser"}
+          onClick={toggleMic}
+          className={`flex size-10 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
+            listening
+              ? "animate-pulse bg-red-500/15 text-red-600"
+              : "text-muted-foreground hover:bg-muted"
+          }`}
         >
-          <Plus className="size-5" />
+          {listening ? <Square className="size-4 fill-current" /> : <Mic className="size-5" />}
         </button>
         <textarea
           value={prompt}
