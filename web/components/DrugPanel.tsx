@@ -47,7 +47,7 @@ export function DrugPanel() {
   const [target, setTarget] = useState("");
   const suggestions = useDrugSuggestions(drug);
   const listId = useId();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   // History loads after mount so server and client markup match.
   useEffect(() => {

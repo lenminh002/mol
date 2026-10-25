@@ -89,7 +89,7 @@ export function DebatePanel() {
   const citations = new Map(result?.citations.map((c) => [c.id, c]) ?? []);
   const scroller = useRef<HTMLDivElement>(null);
   const running = status === "running";
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   // Follow the debate as it streams; jump back to the verdict when it lands.
   useEffect(() => {
