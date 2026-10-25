@@ -102,6 +102,39 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
     }
   });
 
+  const keys = useRef(new Set<string>());
+  useEffect(() => {
+    const held = keys.current;
+    const down = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (!active || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (target instanceof Element && target.closest("input, textarea, select, [contenteditable]")) return;
+      held.add(event.key.toLowerCase());
+    };
+    const up = (event: KeyboardEvent) => { held.delete(event.key.toLowerCase()); };
+    const clear = () => held.clear();
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", clear);
+    return () => {
+      clear();
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", clear);
+    };
+  }, [active]);
+
+  useFrame((_, dt) => {
+    const control = controls.current;
+    const held = keys.current;
+    if (!active || !control || !held.size) return;
+    const step = Math.min(dt, 0.05);
+    const zoom = (held.has("w") ? 1 : 0) - (held.has("s") ? 1 : 0);
+    const slide = (held.has("a") ? 1 : 0) - (held.has("d") ? 1 : 0);
+    if (zoom) void control.dolly(zoom * 20 * step, false);
+    if (slide) void control.truck(-slide * 0.8 * control.distance * step, 0, false);
+  });
+
   useEffect(() => {
     const canvas = gl.domElement;
     const control = controls.current;
@@ -293,6 +326,13 @@ export function CellScene() {
     return () => cancelAnimationFrame(frame);
   }, [result, view, resetView]);
 
+  useEffect(() => {
+    if (view !== "cell") return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") resetView(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [view, resetView]);
+
   const focus = useCallback<Focus>(async (position, radius, target) => {
     const control = controls.current;
     if (!control) return;
@@ -333,7 +373,7 @@ export function CellScene() {
         <LabelProjector anchors={targets.map((t) => t.position)} labels={labels} squish={squish} surface={surfaces} offset={LABEL_OFFSET} />
         {targets[0] && <DrugParticles target={targets[0].position} squish={squish} surface={surfaces[0]} blocked={anims[targets[0].target.cell_location].blocked} />}
         <ReasoningPath points={path.points} surface={path.surface} squish={squish} />
-        <CameraControls ref={controls} makeDefault minDistance={0.6} maxDistance={18} smoothTime={0.35} dollyToCursor enabled={view === "cell"} touches={{ one: CameraControlsImpl.ACTION.TOUCH_ROTATE, two: CameraControlsImpl.ACTION.TOUCH_DOLLY_TRUCK, three: CameraControlsImpl.ACTION.TOUCH_TRUCK }} />
+        <CameraControls ref={controls} makeDefault minDistance={0.6} maxDistance={18} smoothTime={0.35} dollySpeed={5} dollyToCursor enabled={view === "cell"} touches={{ one: CameraControlsImpl.ACTION.TOUCH_ROTATE, two: CameraControlsImpl.ACTION.TOUCH_DOLLY_TRUCK, three: CameraControlsImpl.ACTION.TOUCH_TRUCK }} />
         <SceneInteraction controls={controls} squish={squish} active={view === "cell"} focus={focus} tooltip={tooltip} ruler={ruler} />
       </Canvas>
       <div ref={tooltip} role="status" className="pointer-events-none absolute left-0 top-0 z-20 whitespace-nowrap rounded border bg-card px-2.5 py-1.5 text-xs opacity-0 shadow-sm" />
@@ -353,7 +393,7 @@ export function CellScene() {
         </div>
         <div ref={ruler} className="mt-3 border-t pt-3 text-[9px] text-muted-foreground" aria-label="Approximate scale at focus depth"><div className="h-1.5 border-x border-b border-foreground" style={{ width: 80 }} /><span className="mt-1 block font-mono">≈ 5 µm</span></div>
       </div>
-      <p className={`pointer-events-none absolute bottom-4 left-4 max-w-[calc(100%-13rem)] text-[9px] leading-relaxed text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>Drag cell to squish<br />Drag background to orbit · Scroll to explore</p>
+      <p className={`pointer-events-none absolute bottom-4 left-4 max-w-[calc(100%-13rem)] text-[9px] leading-relaxed text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>Drag cell to squish<br />Drag background to orbit · Scroll or W/S to zoom · A/D to move · Esc to reset</p>
     </div>
   );
 }

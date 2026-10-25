@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useHistory } from "@/lib/history";
 import { useLoadRun, useNewChat, useRunSimulation } from "@/lib/run";
 import { API_URL } from "@/lib/sse";
@@ -46,6 +47,7 @@ export function DrugPanel() {
   const [target, setTarget] = useState("");
   const suggestions = useDrugSuggestions(drug);
   const listId = useId();
+  const [collapsed, setCollapsed] = useState(false);
 
   // History loads after mount so server and client markup match.
   useEffect(() => {
@@ -63,7 +65,54 @@ export function DrugPanel() {
   const fromPrompt = parsed && input.prompt;
 
   return (
-    <aside className="scroll-thin flex min-w-0 flex-col gap-5 overflow-y-auto rounded-md border bg-card p-3.5">
+    <aside
+      className={cn(
+        "relative min-w-0 overflow-hidden rounded-md border bg-card transition-[width] duration-300 ease-in-out",
+        collapsed ? "lg:w-12" : "lg:w-[300px]",
+      )}
+    >
+      <div
+        className={cn(
+          "absolute inset-y-0 left-0 flex w-12 flex-col items-center gap-2 p-2 transition-opacity duration-200 max-lg:static max-lg:w-auto max-lg:flex-row",
+          !collapsed && "pointer-events-none opacity-0 max-lg:hidden",
+        )}
+        inert={!collapsed}
+      >
+        <button
+          aria-label="Expand sidebar"
+          onClick={() => setCollapsed(false)}
+          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <ChevronRight className="size-5" />
+        </button>
+        <button
+          aria-label="New chat"
+          onClick={() => {
+            newChat();
+            setDrug("");
+            setTarget("");
+          }}
+          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <Plus className="size-5" />
+        </button>
+      </div>
+      <div
+        className={cn(
+          "scroll-thin flex h-full min-w-0 flex-col gap-5 overflow-y-auto p-3.5 transition-opacity duration-200 lg:w-[300px]",
+          collapsed && "pointer-events-none opacity-0 max-lg:hidden",
+        )}
+        inert={collapsed}
+      >
+      <div className="-mb-2 flex justify-end">
+        <button
+          aria-label="Collapse sidebar"
+          onClick={() => setCollapsed(true)}
+          className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <ChevronLeft className="size-5" />
+        </button>
+      </div>
       <Button
         variant="outline"
         onClick={() => {
@@ -143,6 +192,7 @@ export function DrugPanel() {
           </div>
         ))}
       </section>
+      </div>
     </aside>
   );
 }

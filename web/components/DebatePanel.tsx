@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { cn } from "cn";
 import { ChevronRight, Loader2, RotateCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,7 @@ export function DebatePanel() {
   const { debate, toolCalls, status, statusMessage, result, input } = useSim();
   const run = useRunSimulation();
   const citations = new Map(result?.citations.map((c) => [c.id, c]) ?? []);
-  const scroller = useRef<HTMLElement>(null);
+  const scroller = useRef<HTMLDivElement>(null);
   const running = status === "running";
   const [open, setOpen] = useState(true);
 
@@ -98,29 +99,36 @@ export function DebatePanel() {
     else if (running) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [debate.length, result, running]);
 
-  if (!open) {
-    return (
-      <aside className="flex min-w-0 rounded-md border bg-card lg:w-11 lg:flex-col lg:items-center">
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Expand reasoning"
-          aria-expanded={false}
-          className="flex w-full items-center gap-2 p-3 text-muted-foreground hover:text-foreground lg:flex-col lg:px-0"
-        >
-          <ChevronRight className="size-4 rotate-180" />
-          <span className="text-[10px] font-medium uppercase tracking-[0.14em] lg:[writing-mode:vertical-rl]">
-            Reasoning{running ? " · running…" : ""}
-          </span>
-        </button>
-      </aside>
-    );
-  }
-
   return (
     <aside
-      ref={scroller}
-      className="scroll-thin flex min-w-0 flex-col gap-3 overflow-y-auto rounded-md border bg-card p-3.5 lg:w-[380px]"
+      className={cn(
+        "relative min-w-0 overflow-hidden rounded-md border bg-card transition-[width] duration-300 ease-in-out",
+        open ? "lg:w-[380px]" : "lg:w-11",
+      )}
     >
+      <button
+        onClick={() => setOpen(true)}
+        aria-label="Expand reasoning"
+        aria-expanded={false}
+        inert={open}
+        className={cn(
+          "absolute inset-y-0 right-0 flex w-11 items-center gap-2 p-3 text-muted-foreground transition-opacity duration-200 hover:text-foreground max-lg:static max-lg:w-full lg:flex-col lg:px-0",
+          open && "pointer-events-none opacity-0 max-lg:hidden",
+        )}
+      >
+        <ChevronRight className="size-4 rotate-180" />
+        <span className="text-[10px] font-medium uppercase tracking-[0.14em] lg:[writing-mode:vertical-rl]">
+          Reasoning{running ? " · running…" : ""}
+        </span>
+      </button>
+      <div
+        ref={scroller}
+        inert={!open}
+        className={cn(
+          "scroll-thin flex h-full min-w-0 flex-col gap-3 overflow-y-auto p-3.5 transition-opacity duration-200 lg:w-[380px]",
+          !open && "pointer-events-none opacity-0 max-lg:hidden",
+        )}
+      >
       <div className="flex items-center justify-between gap-2">
         <button
           onClick={() => setOpen(false)}
@@ -213,6 +221,7 @@ export function DebatePanel() {
           </ul>
         </div>
       )}
+      </div>
     </aside>
   );
 }

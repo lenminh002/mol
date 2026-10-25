@@ -16,7 +16,7 @@ export function Viewport() {
   const { view, result } = useSim();
 
   return (
-    <section className="relative h-[70svh] min-h-[480px] min-w-0 overflow-hidden rounded-md border bg-background lg:h-auto lg:min-h-0">
+    <section className="relative h-[70svh] min-h-[480px] min-w-0 overflow-hidden rounded-md bg-background lg:h-auto lg:min-h-0">
       <CellScene />
 
       {result && view === "cell" && (
