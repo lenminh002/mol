@@ -9,9 +9,14 @@ import { useSim } from "@/lib/store";
 import type { CellLocation, Target } from "@/lib/types";
 import { DrugParticles } from "./DrugParticles";
 import { Hotspot, LabelProjector } from "./Hotspot";
-import { DRUG_ENTRY, ORGANELLES, membraneRadiusAt, organelleAnims } from "./layout";
+import { PHASE, effectTimings, timelineDuration } from "./effectTimeline";
+import { DIRECTION_TINT, DRUG_ENTRY, ORGANELLES, membraneRadiusAt, organelleAnims } from "./layout";
+import { Needle } from "./Needle";
+import { resetPlayback } from "./playback";
 import { AccessoryOrganelles, EndoplasmicReticulum, Golgi, Membrane, Mitochondria, Nucleus, Ribosomes } from "./Organelles";
 import { ReasoningPath } from "./ReasoningPath";
+import { SignalWaves, type WaveSpec } from "./SignalWave";
+import { PlaybackDriver, TimeGate } from "./TimeGate";
 import { createSquishState, deformPoint, stepSquish, type SquishState } from "./squish";
 
 const HOME_CAMERA: [number, number, number, number, number, number] = [6, 5.4, 7, 0, 0, 0];
@@ -305,6 +310,26 @@ export function CellScene() {
     return { points, surface };
   }, [result, targets]);
 
+  const waves = useMemo<WaveSpec[]>(() => {
+    if (!result || !targets.length) return [];
+    const origin = targets[0].target.cell_location;
+    const timings = effectTimings(result.effects);
+    const seen = new Set<CellLocation>();
+    const out: WaveSpec[] = [];
+    result.effects.forEach((effect, index) => {
+      if (seen.has(effect.organelle)) return;
+      seen.add(effect.organelle);
+      out.push({ to: ORGANELLES[effect.organelle].position, onset: timings[index].onset, color: DIRECTION_TINT[effect.direction], inPlace: effect.organelle === origin });
+    });
+    return out;
+  }, [result, targets]);
+
+  // Every new result (or loaded run) restarts the injection; reduced motion jumps to the end state.
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    resetPlayback(timelineDuration(result?.effects ?? []), !result ? "idle" : reduced ? "end" : "play");
+  }, [result]);
+
   const resetView = useCallback(() => {
     navigation.current++;
     squish.dragging = false;
@@ -369,10 +394,13 @@ export function CellScene() {
         <Ribosomes {...props} />
         <AccessoryOrganelles {...props} />
         <ContactShadows position={[0, -2.05, 0]} opacity={0.24} scale={12} blur={2.8} far={5} resolution={128} color="#786454" />
-        {targets.map(({ target, position }) => <Hotspot key={target.name} targetName={target.name} position={position} surface={target.cell_location === "membrane"} squish={squish} blocked={anims[target.cell_location].blocked} />)}
+        {targets.map(({ target, position }) => <Hotspot key={target.name} targetName={target.name} position={position} surface={target.cell_location === "membrane"} squish={squish} blocked={anims[target.cell_location].blocked} flashAt={PHASE.bind} />)}
         <LabelProjector anchors={targets.map((t) => t.position)} labels={labels} squish={squish} surface={surfaces} offset={LABEL_OFFSET} />
         {targets[0] && <DrugParticles target={targets[0].position} squish={squish} surface={surfaces[0]} blocked={anims[targets[0].target.cell_location].blocked} />}
-        <ReasoningPath points={path.points} surface={path.surface} squish={squish} />
+        {result && <Needle squish={squish} />}
+        {targets[0] && <SignalWaves from={targets[0].position} waves={waves} squish={squish} />}
+        <TimeGate from={PHASE.cascadeStart}><ReasoningPath points={path.points} surface={path.surface} squish={squish} /></TimeGate>
+        <PlaybackDriver />
         <CameraControls ref={controls} makeDefault minDistance={0.6} maxDistance={18} smoothTime={0.35} dollySpeed={5} dollyToCursor enabled={view === "cell"} touches={{ one: CameraControlsImpl.ACTION.TOUCH_ROTATE, two: CameraControlsImpl.ACTION.TOUCH_DOLLY_TRUCK, three: CameraControlsImpl.ACTION.TOUCH_TRUCK }} />
         <SceneInteraction controls={controls} squish={squish} active={view === "cell"} focus={focus} tooltip={tooltip} ruler={ruler} />
       </Canvas>

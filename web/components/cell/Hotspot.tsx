@@ -3,6 +3,8 @@
 import { useRef, type RefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { smoothstep } from "./effectTimeline";
+import { playback } from "./playback";
 import { deformPoint, type SquishState } from "./squish";
 
 interface Props {
@@ -12,12 +14,15 @@ interface Props {
   targetName?: string;
   squish?: SquishState;
   surface?: boolean;
+  flashAt?: number; // playback time of the binding flash; the pin wakes up shortly before it
 }
 
 // A binding-site pin. Its owner can route pointer events through targetName.
-export function Hotspot({ position, blocked, onSelect, targetName, squish, surface = false }: Props) {
+export function Hotspot({ position, blocked, onSelect, targetName, squish, surface = false, flashAt }: Props) {
   const group = useRef<THREE.Group>(null);
   const ring = useRef<THREE.Mesh>(null);
+  const core = useRef<THREE.MeshStandardMaterial>(null);
+  const halo = useRef<THREE.MeshBasicMaterial>(null);
   const color = blocked ? "#c84b43" : "#0f766e";
 
   useFrame(({ clock, camera }) => {
@@ -26,7 +31,12 @@ export function Hotspot({ position, blocked, onSelect, targetName, squish, surfa
       else group.current.position.copy(position);
     }
     if (!ring.current) return;
-    ring.current.scale.setScalar(1 + 0.08 * Math.sin(clock.elapsedTime * 3));
+    // Before the flash the pin is a quiet marker; the drug docking makes it flare, then it settles.
+    const flash = flashAt === undefined ? 0 : Math.exp(-(((playback.t - flashAt) / 0.45) ** 2));
+    const awake = flashAt === undefined ? 1 : 0.35 + 0.65 * smoothstep((playback.t - (flashAt - 1.5)) / 1.5);
+    ring.current.scale.setScalar(1 + 0.08 * Math.sin(clock.elapsedTime * 3) + flash * 1.6);
+    if (core.current) core.current.emissiveIntensity = 0.12 + flash * 1.1;
+    if (halo.current) halo.current.opacity = 0.65 * awake * (1 - 0.5 * flash);
     ring.current.lookAt(camera.position);
   });
 
@@ -40,11 +50,11 @@ export function Hotspot({ position, blocked, onSelect, targetName, squish, surfa
         }}
       >
         <sphereGeometry args={[0.09, 20, 20]} />
-        <meshStandardMaterial color={color} roughness={0.65} emissive={color} emissiveIntensity={0.12} toneMapped />
+        <meshStandardMaterial ref={core} color={color} roughness={0.65} emissive={color} emissiveIntensity={0.12} toneMapped />
       </mesh>
       <mesh ref={ring}>
         <ringGeometry args={[0.14, 0.154, 48]} />
-        <meshBasicMaterial color={color} transparent opacity={0.65} toneMapped side={THREE.DoubleSide} depthWrite={false} />
+        <meshBasicMaterial ref={halo} color={color} transparent opacity={0.65} toneMapped side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
     </group>
   );

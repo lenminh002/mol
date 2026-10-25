@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSim } from "@/lib/store";
 import { EffectLegend } from "./EffectLegend";
+import { EffectTimeline } from "./EffectTimeline";
 import { Narrator } from "./Narrator";
 
 const CellScene = dynamic(() => import("./cell/CellScene").then((m) => m.CellScene), { ssr: false });
@@ -20,6 +21,7 @@ export function Viewport() {
       <CellScene />
 
       {result && view === "cell" && <EffectLegend />}
+      {result && view === "cell" && <EffectTimeline />}
 
       {/* Stays mounted across views so narration keeps playing in the molecule view. */}
       {result && (

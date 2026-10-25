@@ -1,5 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
+import { effectProgress, effectTimings } from "@/components/cell/effectTimeline";
+import { usePlayback } from "@/components/cell/playback";
 import { useSim } from "@/lib/store";
 
 const DIRECTION = { up: "↑", down: "↓", block: "⛔" } as const;
@@ -12,6 +15,8 @@ const STATUS_STYLE = {
 // Effect list overlaid on the cell; hovering one highlights its organelle in 3D.
 export function EffectLegend() {
   const { result, setHighlight } = useSim();
+  const { t } = usePlayback();
+  const timings = useMemo(() => effectTimings(result?.effects ?? []), [result]);
   if (!result) return null;
 
   return (
@@ -21,7 +26,8 @@ export function EffectLegend() {
           key={i}
           onMouseEnter={() => setHighlight(e.organelle)}
           onMouseLeave={() => setHighlight(null)}
-          className={`cursor-default rounded border bg-card/95 px-2.5 py-1.5 text-[11px] leading-relaxed ${STATUS_STYLE[e.status]}`}
+          style={{ opacity: 0.4 + 0.6 * effectProgress(timings[i], t) }}
+          className={`relative cursor-default overflow-hidden rounded border bg-card/95 px-2.5 py-1.5 text-[11px] leading-relaxed ${STATUS_STYLE[e.status]}`}
         >
           <span className="mr-1">{DIRECTION[e.direction]}</span>
           <span className="font-medium">{e.pathway}</span>
@@ -29,6 +35,7 @@ export function EffectLegend() {
             {" "}
             · {e.organelle} · {e.status} · {Math.round(e.confidence * 100)}%
           </span>
+          <span aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-brand" style={{ transform: `scaleX(${effectProgress(timings[i], t) * (0.4 + 0.6 * e.magnitude)})` }} />
         </li>
       ))}
     </ul>

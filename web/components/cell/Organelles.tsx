@@ -5,7 +5,8 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { CellLocation } from "@/lib/types";
 import { useZoomReveal } from "./detail";
-import { CENTROSOME_POSITION, GOLGI_POSITION, MITOCHONDRIA, NUCLEUS_RADIUS, ORGANELLES, animFactor, insideCell, membraneRadiusAt, seededRandom, type OrganelleAnim } from "./layout";
+import { CENTROSOME_POSITION, GOLGI_POSITION, MITOCHONDRIA, NUCLEUS_RADIUS, ORGANELLES, insideCell, liveAnim, membraneRadiusAt, newLiveAnim, seededRandom, type OrganelleAnim } from "./layout";
+import { playback } from "./playback";
 import { patchCellMaterial, type SquishState } from "./squish";
 
 export interface AnatomyProps {
@@ -26,28 +27,28 @@ function useClayMaterial(props: AnatomyProps, location: CellLocation, color: str
     patchCellMaterial(next, props.squish, JSON.parse(patchKey));
     return next;
   }, [color, opacity, side, props.squish, patchKey]);
-  const colors = useMemo(() => ({ base: new THREE.Color(color), target: new THREE.Color(), tint: new THREE.Color() }), [color]);
+  const colors = useMemo(() => ({ base: new THREE.Color(color), target: new THREE.Color(), tint: new THREE.Color(), live: newLiveAnim() }), [color]);
   useEffect(() => () => material.dispose(), [material]);
   useFrame(({ clock }, delta) => {
     const animation = props.anims[location];
-    const factor = animFactor(animation, clock.elapsedTime, props.highlight === location);
+    const live = liveAnim(animation, playback.t, clock.elapsedTime, props.highlight === location, colors.live);
     colors.target.copy(colors.base);
-    if (animation.tint) colors.target.lerp(colors.tint.set(animation.tint), 0.42);
-    colors.target.multiplyScalar(animation.intensity < 1 ? 0.88 : 1);
-    material.color.lerp(colors.target, 1 - Math.exp(-delta * 7));
+    if (animation.tint) colors.target.lerp(colors.tint.set(animation.tint), live.tintAmount);
+    colors.target.multiplyScalar(1 - live.darken);
+    material.color.lerp(colors.target, 1 - Math.exp(-delta * 14));
     material.emissive.copy(colors.target);
-    material.emissiveIntensity = 0.018 * factor;
-    material.wireframe = animation.dashed;
-    material.opacity = opacity * (animation.dashed ? 0.6 : 1);
+    material.emissiveIntensity = 0.015 + live.glow;
+    material.wireframe = live.wire;
+    material.opacity = opacity * live.opacity;
   });
   return material;
 }
 
 function useBreathe(props: AnatomyProps, location: CellLocation) {
   const group = useRef<THREE.Group>(null);
+  const live = useMemo(newLiveAnim, []);
   useFrame(({ clock }) => {
-    const animation = props.anims[location];
-    group.current?.scale.setScalar(1 + (animation.pulse ? 0.014 * Math.sin(clock.elapsedTime * animation.pulse * Math.PI) : 0));
+    group.current?.scale.setScalar(liveAnim(props.anims[location], playback.t, clock.elapsedTime, false, live).scale);
   });
   return group;
 }
