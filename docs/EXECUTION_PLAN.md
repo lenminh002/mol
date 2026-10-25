@@ -211,7 +211,7 @@ caveats[]: string
 | Preset | Target | PDB |
 |---|---|---|
 | imatinib | BCR-ABL | 1IEP |
-| aspirin | COX-1 | 1PTH |
+| aspirin | COX-1 | 6Y3C (human) |
 | atorvastatin | HMG-CoA reductase | 1HWK |
 | tamoxifen | Estrogen receptor alpha | 3ERT (4-hydroxytamoxifen) |
 | lisinopril | ACE | 1O86 |

@@ -9,79 +9,78 @@
   "targets": [
     {
       "name": "COX-1 (PTGS1)",
-      "uniprot": "P05979",
-      "pdb_id": "1PTH",
+      "uniprot": "P23219",
+      "pdb_id": "6Y3C",
       "cell_location": "er",
-      "binding_score": null,
-      "pose_pdb_url": null
+      "binding_score": -0.2534085810184479,
+      "pose_pdb_url": "files/poses/9703e26c6553.sdf"
     }
   ],
   "effects": [
     {
-      "pathway": "COX-1 prostaglandin H2 synthesis (irreversible Ser530 acetylation)",
+      "pathway": "COX-1 cyclooxygenase activity (irreversible Ser529 acetylation)",
       "organelle": "er",
       "direction": "block",
       "magnitude": 0.9,
       "status": "agreed",
       "confidence": 0.85,
-      "explanation": "Aspirin acetylates Ser530 in the COX-1 active site, blocking arachidonic acid access and permanently stopping prostaglandin H2 production; supported biochemically and by a structure of COX-1 acetylated by an aspirin analog.",
+      "explanation": "Aspirin acetylates Ser529 of COX-1, blocking arachidonic acid access to the active site. The block is permanent in platelets, but acetylation was incomplete in colorectal tissue.",
       "source_ids": [
-        "pmid:30096040",
-        "pdb:1PTH",
-        "uniprot:P05979"
+        "pmid:9263351",
+        "pmid:41592353",
+        "pmid:37173923"
       ]
     },
     {
-      "pathway": "Platelet thromboxane production / platelet aggregation",
+      "pathway": "Platelet thromboxane A2 production",
       "organelle": "cytoplasm",
       "direction": "down",
-      "magnitude": 0.8,
+      "magnitude": 0.85,
       "status": "agreed",
       "confidence": 0.8,
-      "explanation": "Loss of COX-1 output lowers pro-clotting thromboxane in platelets, the basis of aspirin's antithrombotic effect; the skeptic added trial and meta-analysis support for antiplatelet benefit.",
+      "explanation": "In patients, more than 70% of COX-1 was acetylated and serum TXB2 was nearly completely suppressed. The skeptic noted that placing this in the cytoplasm is not source-backed, so only the region assignment is uncertain.",
       "source_ids": [
-        "pmid:23629578",
-        "pmid:11786451",
-        "pmid:19482214"
+        "pmid:37173923",
+        "pmid:9263351"
       ]
     },
     {
-      "pathway": "Gastric mucosal protective prostaglandins",
+      "pathway": "TXA2-driven platelet activation and aggregation",
       "organelle": "membrane",
       "direction": "down",
-      "magnitude": 0.6,
+      "magnitude": 0.75,
       "status": "agreed",
       "confidence": 0.75,
-      "explanation": "Reduced protective prostaglandins lower mucus, bicarbonate and mucosal blood flow, raising ulcer and bleeding risk; the GI bleeding risk is supported by trial and meta-analysis data.",
+      "explanation": "Less TXA2 means less platelet activation and aggregation. Other NSAIDs competing for COX-1 and aspirin resistance can weaken this effect.",
       "source_ids": [
-        "pmid:23555156",
-        "pmid:25666703",
-        "pmid:30158069",
-        "pmid:19482214"
+        "pmid:41592353",
+        "pmid:16488805",
+        "pmid:25307725"
       ]
     },
     {
-      "pathway": "Acetylated COX-2 shifts output to 15R-HETE and 15R-prostaglandins",
+      "pathway": "Bleeding risk",
+      "organelle": "membrane",
+      "direction": "up",
+      "magnitude": 0.5,
+      "status": "agreed",
+      "confidence": 0.7,
+      "explanation": "Bleeding risk rises at any effective antiplatelet dose. This is a clinical outcome; its placement in the membrane region reflects reduced platelet function.",
+      "source_ids": [
+        "pmid:9263351",
+        "pmid:22918730"
+      ]
+    },
+    {
+      "pathway": "Gastric mucosal toxicity",
       "organelle": "er",
       "direction": "up",
-      "magnitude": 0.3,
-      "status": "agreed",
-      "confidence": 0.6,
-      "explanation": "Off-target effect on COX-2: once acetylated, COX-2 makes more 15R-products and less of its usual prostaglandins. This was cited and not challenged.",
-      "source_ids": [
-        "pmid:30096040"
-      ]
-    },
-    {
-      "pathway": "Other annotated binding partners (CYP2C9, IKBKB, NFKBIA, TP53)",
-      "organelle": "cytoplasm",
-      "direction": "down",
-      "magnitude": 0.1,
+      "magnitude": 0.4,
       "status": "speculative",
-      "confidence": 0.2,
-      "explanation": "These are binding annotations only. No mechanism-level evidence was retrieved, so the direction is a placeholder and no functional effect should be inferred.",
+      "confidence": 0.35,
+      "explanation": "Aspirin-like drugs cause stomach toxicity that COX-2-selective drugs avoid, but no source in the evidence describes the mechanism.",
       "source_ids": [
-        "hetionet:CbG"
+        "pmid:12973429"
       ]
     }
   ],
@@ -89,56 +88,47 @@
     {
       "agent": "proposer",
       "round": 1,
-      "text": "**Aspirin → COX-1 (PTGS1): summary for the panel**\n\n**1. Target and where it sits.** COX-1 (prostaglandin H2 synthase-1; UniProt P05979) sits on the **endoplasmic reticulum (ER) membrane** [uniprot:P05979] [hetionet:GpCC]. The knowledge graph path is aspirin –binds→ PTGS1 –located in→ ER membrane [hetionet:CbG] [hetionet:GpCC]. Aspirin is a small molecule (180 Da, logP 1.31) with no Lipinski violations [pubchem:2244].\n\n**2. How it works.** Aspirin transfers its acetyl group to Ser530 in the COX active site. This blocks arachidonic acid from getting in, so COX-1 stops making prostaglandins [pmid:30096040]. The change is permanent: the enzyme is acetylated, not just occupied. The crystal structure of COX-1 acetylated by an aspirin analog shows this modification [pdb:1PTH].\n\n**3. Downstream effects**\n- **ER: prostaglandin H2 from COX-1 is blocked** [pmid:30096040].\n- **Platelets (cytoplasm): pro-clotting thromboxane is decreased**, which is the basis of aspirin's antithrombotic effect [pmid:23629578].\n- **Gastric lining (cytoplasm/membrane): protective prostaglandins are decreased.** This reduces mucus, bicarbonate and blood flow in the mucosa, and raises the risk of ulcers and bleeding [pmid:23555156] [pmid:25666703].\n- **ER: COX-2 activity changes (off-target).** Acetylated COX-2 makes more 15R-HETE and 15R-prostaglandins and less of its usual products [pmid:30096040].\n- Other recorded binding partners include CYP2C9, IKBKB, NFKBIA and TP53 [hetionet:CbG]. No mechanism-level evidence was retrieved for these.\n\n**4. Strength of evidence**\n- **Structural:** strong [pdb:1PTH].\n- **Biochemical / in vitro:** strong [pmid:30096040].\n- **Clinical:** reviews only; no trial records came back for antiplatelet benefit or GI harm [pmid:23629578] [pmid:23555156].\n- **Computational:** docking could not run because the API key is missing, so there is no docking signal. It would only have ranked poses anyway, and DiffDock does not model the covalent bond aspirin forms.",
+      "text": "**Aspirin → COX-1 (PTGS1): case for the panel**\n\n**1. Target and location**\nCOX-1 (PTGS1, UniProt P23219) is an enzyme in the **ER membrane** [uniprot:P23219; hetionet:GpCC]. The knowledge graph records the chain aspirin → binds PTGS1 → ER membrane [hetionet:CbG]. Aspirin itself is small and drug-like (MW 180, logP 1.31, no Lipinski violations) [pubchem:2244].\n\n**2. How it works at the molecular level**\nAspirin permanently attaches an acetyl group to serine 529 of COX-1. This blocks arachidonic acid from reaching the enzyme's active site at Tyr385, so COX-1 is switched off for good [pmid:9263351]. Aspirin is about 150–200 times more potent against COX-1 than COX-2. That is why low doses act mainly on platelets and higher doses are needed for anti-inflammatory effects [pmid:9263351].\n\n**3. Downstream effects**\n- **ER:** COX-1 cyclooxygenase activity **blocked**, irreversibly [pmid:9263351; pmid:41592353].\n- **Cytoplasm:** platelet thromboxane A2 production **decreased**. In patients, more than 70% of COX-1 was acetylated and serum TXB2 was almost completely suppressed [pmid:37173923].\n- **Membrane:** TXA2-driven platelet activation and aggregation **decreased** [pmid:41592353; pmid:16488805].\n- Bleeding risk **increased** at any effective antiplatelet dose [pmid:9263351; pmid:22918730]. My searches did not find a source for the stomach-lining mechanism, so that part is unsupported here.\n- Other recorded binding partners include COX-2, CYP2C9, IKBKB and TP53 [hetionet:CbG]. How much these matter in the clinic is unclear.\n\n**4. Strength of evidence**\n- **Clinical and ex vivo biomarker data:** strong [pmid:37173923; pmid:9263351].\n- **Structural:** limited. The only structure used, 6Y3C, has no aspirin bound [pdb:6Y3C].\n- **Computational:** weak. The best DiffDock score was −0.25 [dock:6Y3C], which is below the tool's \"good\" threshold of 0. It is only a ranking score, and DiffDock cannot model covalent acetylation, so this result does not weaken the established mechanism.",
       "model": "Claude",
       "source_ids": [
-        "uniprot:P05979",
+        "uniprot:P23219",
         "hetionet:GpCC",
         "hetionet:CbG",
         "pubchem:2244",
-        "pmid:30096040",
-        "pdb:1PTH",
-        "pmid:23629578",
-        "pmid:23555156",
-        "pmid:25666703"
+        "pmid:9263351",
+        "pmid:41592353",
+        "pmid:37173923",
+        "pmid:16488805",
+        "pmid:22918730",
+        "pdb:6Y3C",
+        "dock:6Y3C"
       ]
     },
     {
       "agent": "skeptic",
       "round": 1,
-      "text": "Here are my review comments on the pharmacologist's summary of aspirin's mechanism:\n\n1.  The description of COX-1's cellular location on the ER membrane and aspirin's drug-likeness properties are well-supported [uniprot:P05979, pubchem:2244].\n2.  Aspirin's mechanism, involving the irreversible acetylation of Ser530 in COX-1, which blocks arachidonic acid, is accurate and strongly supported by biochemical [pmid:30096040] and structural evidence [pdb:1PTH].\n3.  The listed \"other recorded binding partners\" (CYP2C9, IKBKB, NFKBIA, TP53) are confirmed binding partners [hetionet:CbG], and the statement that mechanism-level evidence for these was not retrieved is consistent.\n4.  The statement that \"no trial records came back for antiplatelet benefit or GI harm\" is inaccurate. Numerous clinical trials and meta-analyses provide robust evidence for aspirin's antiplatelet effects [pmid:11786451, pmid:19482214] and its association with gastrointestinal bleeding [pmid:30158069, pmid:19482214]. This is a critical omission.\n\nVerdict: CHALLENGED",
-      "model": "Gemini",
+      "text": "1. **Target, location and drug properties:** Well supported. The knowledge graph links aspirin to PTGS1 [hetionet:CbG] and PTGS1 to the ER membrane [hetionet:GpCC]. UniProt agrees [uniprot:P23219], and PubChem gives MW 180.16, logP 1.31 and no Lipinski violations [pubchem:2244].\n\n2. **Ser529 acetylation, blocked access to Tyr385, 150–200-fold selectivity and dose split:** Well supported [pmid:9263351].\n\n3. **\"Switched off for good\":** Slightly overstated. COX-1 is shut off permanently in platelets [pmid:41592353], but acetylation was incomplete in colorectal tissue [pmid:37173923]. The summary should also say why the effect lasts: platelets have no nucleus, so they can't make new enzyme. None of my sources states this.\n\n4. **TXA2 effects (>70% acetylation, near-complete serum TXB2 suppression, less aggregation):** Well supported [pmid:37173923; pmid:41592353; pmid:16488805]. Minor point: labelling TXA2 production as \"cytoplasm\" isn't backed by any source.\n\n5. **Bleeding at any effective dose:** Well supported [pmid:9263351; pmid:22918730].\n\n6. **Stomach-lining mechanism:** Partly unsupported. One source notes that aspirin-like drugs cause stomach toxicity that COX-2-selective drugs avoid [pmid:12973429], but it doesn't describe the mechanism.\n\n7. **Missing context:** Other NSAIDs can compete with low-dose aspirin for COX-1 and weaken its antiplatelet effect [pmid:25307725]. Aspirin resistance is also missing [pmid:16488805].\n\n8. **Structure and docking:** Accurately stated: 6Y3C has no bound ligand [pdb:6Y3C], and the best DiffDock score was −0.25 [dock:6Y3C].\n\nVerdict: SOUND",
+      "model": "Claude (Gemini unavailable)",
       "source_ids": [
-        "uniprot:P05979",
-        "pubchem:2244",
-        "pmid:30096040",
-        "pdb:1PTH",
         "hetionet:CbG",
-        "pmid:11786451",
-        "pmid:19482214",
-        "pmid:30158069"
-      ]
-    },
-    {
-      "agent": "proposer",
-      "round": 2,
-      "text": "**Response to review**\n\nPoint 4 is conceded. My phrasing conflated \"no trial records returned by my retrieval\" with \"no trial evidence exists\" — that was a reporting failure, not a defensible claim. The reviewer's citations establish antiplatelet efficacy [pmid:11786451] [pmid:19482214] and GI bleeding risk [pmid:30158069] [pmid:19482214] at a level well above the narrative reviews I cited [pmid:23629578] [pmid:23555156]. The clinical tier should be upgraded from \"reviews only\" to trial/meta-analysis grade accordingly.\n\nI defend the mechanistic core, which the reviewer also accepts: Ser530 acetylation with irreversible loss of COX-1 prostaglandin output [pmid:30096040], corroborated structurally [pdb:1PTH] — noting, as stated, that 1PTH is an aspirin analog, so it is strong but indirect support for acetylation geometry.\n\nI also maintain that CYP2C9, IKBKB, NFKBIA and TP53 remain mere binding annotations [hetionet:CbG]; no mechanism is claimed, and none should be inferred.",
-      "model": "Claude",
-      "source_ids": [
-        "pmid:11786451",
-        "pmid:19482214",
-        "pmid:30158069",
-        "pmid:23629578",
-        "pmid:23555156",
-        "pmid:30096040",
-        "pdb:1PTH",
-        "hetionet:CbG"
+        "hetionet:GpCC",
+        "uniprot:P23219",
+        "pubchem:2244",
+        "pmid:9263351",
+        "pmid:41592353",
+        "pmid:37173923",
+        "pmid:16488805",
+        "pmid:22918730",
+        "pmid:12973429",
+        "pmid:25307725",
+        "pdb:6Y3C",
+        "dock:6Y3C"
       ]
     },
     {
       "agent": "judge",
-      "round": 3,
-      "text": "The skeptic accepted the mechanistic core (irreversible COX-1 acetylation in the ER) and successfully challenged only the claim that no clinical trial evidence existed. The proposer conceded, so the clinical effects are marked agreed with trial-level citations added.",
+      "round": 2,
+      "text": "The skeptic judged the core mechanism sound: COX-1 acetylation, thromboxane suppression, reduced aggregation and bleeding risk are well cited, so all are agreed. Only the stomach-toxicity mechanism lacked direct support and is marked speculative; the skeptic's other points (cytoplasm placement, incomplete tissue acetylation, NSAID competition, resistance) are recorded as caveats.",
       "model": "Claude",
       "source_ids": []
     }
@@ -164,21 +154,21 @@
     },
     {
       "from": "Aspirin",
-      "relation": "irreversibly acetylates Ser530 of",
-      "to": "COX-1 active site",
-      "source_id": "pmid:30096040"
+      "relation": "irreversibly acetylates Ser529, blocking",
+      "to": "COX-1 cyclooxygenase activity",
+      "source_id": "pmid:9263351"
     },
     {
-      "from": "Acetylated COX-1",
-      "relation": "blocks",
-      "to": "prostaglandin H2 / thromboxane synthesis",
-      "source_id": "pmid:30096040"
+      "from": "COX-1 blockade",
+      "relation": "suppresses",
+      "to": "platelet thromboxane A2 (serum TXB2)",
+      "source_id": "pmid:37173923"
     },
     {
-      "from": "Reduced platelet thromboxane",
+      "from": "Reduced thromboxane A2",
       "relation": "decreases",
-      "to": "platelet aggregation and vascular events",
-      "source_id": "pmid:19482214"
+      "to": "platelet activation and aggregation",
+      "source_id": "pmid:41592353"
     }
   ],
   "citations": [
@@ -189,22 +179,46 @@
       "pmid": null
     },
     {
-      "id": "uniprot:P05979",
-      "title": "UniProt P05979: COX-1 (PTGS1)",
-      "url": "https://www.uniprot.org/uniprotkb/P05979",
+      "id": "uniprot:P23219",
+      "title": "UniProt P23219: COX-1 (PTGS1)",
+      "url": "https://www.uniprot.org/uniprotkb/P23219",
       "pmid": null
     },
     {
-      "id": "pdb:1PTH",
-      "title": "PDB 1PTH: COX-1 (PTGS1) structure",
-      "url": "https://www.rcsb.org/structure/1PTH",
+      "id": "pdb:6Y3C",
+      "title": "PDB 6Y3C: COX-1 (PTGS1) structure",
+      "url": "https://www.rcsb.org/structure/6Y3C",
       "pmid": null
     },
     {
-      "id": "pmid:30096040",
-      "title": "Residual cyclooxygenase activity of aspirin-acetylated COX-2 forms 15 R-prostaglandins that inhibit platelet aggregation",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/30096040/",
-      "pmid": "30096040"
+      "id": "dock:6Y3C",
+      "title": "DiffDock pose: aspirin → COX-1 (PTGS1)",
+      "url": "https://www.rcsb.org/structure/6Y3C",
+      "pmid": null
+    },
+    {
+      "id": "pmid:22918730",
+      "title": "Aspirin and Other COX-1 inhibitors",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/22918730/",
+      "pmid": "22918730"
+    },
+    {
+      "id": "pmid:9263351",
+      "title": "Aspirin and platelets: the antiplatelet action of aspirin and its role in thrombosis treatment and prophylaxis",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/9263351/",
+      "pmid": "9263351"
+    },
+    {
+      "id": "pmid:16488805",
+      "title": "Aspirin resistance",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/16488805/",
+      "pmid": "16488805"
+    },
+    {
+      "id": "pmid:37173923",
+      "title": "Biomarkers of Response to Low-Dose Aspirin in Familial Adenomatous Polyposis Patients",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/37173923/",
+      "pmid": "37173923"
     },
     {
       "id": "hetionet:GpCC",
@@ -219,49 +233,33 @@
       "pmid": null
     },
     {
-      "id": "pmid:25666703",
-      "title": "New insight into the mechanisms of gastroduodenal injury induced by nonsteroidal anti-inflammatory drugs: practical implications",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/25666703/",
-      "pmid": "25666703"
+      "id": "pmid:41592353",
+      "title": "Platelet activation, aspirin, and cancer: From basic science to clinical trials",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/41592353/",
+      "pmid": "41592353"
     },
     {
-      "id": "pmid:23555156",
-      "title": "Clinical features of gastroduodenal injury associated with long-term low-dose aspirin therapy",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/23555156/",
-      "pmid": "23555156"
+      "id": "pmid:12973429",
+      "title": "Structure of COX-1 and COX-2 enzymes and their interaction with inhibitors",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/12973429/",
+      "pmid": "12973429"
     },
     {
-      "id": "pmid:23629578",
-      "title": "Cardiovascular effects of common analgesics",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/23629578/",
-      "pmid": "23629578"
-    },
-    {
-      "id": "pmid:11786451",
-      "title": "Collaborative meta-analysis of randomised trials of antiplatelet therapy for prevention of death, myocardial infarction, and stroke in high risk patients",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/11786451/",
-      "pmid": "11786451"
-    },
-    {
-      "id": "pmid:30158069",
-      "title": "Use of aspirin to reduce risk of initial vascular events in patients at moderate risk of cardiovascular disease (ARRIVE): a randomised, double-blind, placebo-controlled trial",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/30158069/",
-      "pmid": "30158069"
-    },
-    {
-      "id": "pmid:19482214",
-      "title": "Aspirin in the primary and secondary prevention of vascular disease: collaborative meta-analysis of individual participant data from randomised trials",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/19482214/",
-      "pmid": "19482214"
+      "id": "pmid:25307725",
+      "title": "Competition between low-dose aspirin and other NSAIDs for COX-1 binding and its clinical consequences for the drugs' antiplatelet effects",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/25307725/",
+      "pmid": "25307725"
     }
   ],
   "caveats": [
-    "The 1PTH structure is ovine COX-1 acetylated by an aspirin analog (2-bromoacetoxy-benzoic acid), so it supports the acetylation geometry only indirectly.",
-    "No docking was performed, and standard docking would not model aspirin's covalent bond anyway.",
-    "The platelet and gastric effects depend on cell type: the platelet effect is thromboxane-driven, while the gastric effect involves mucosal prostaglandins.",
-    "The secondary binding partners (CYP2C9, IKBKB, NFKBIA, TP53) are database annotations without mechanistic evidence.",
-    "The COX-2 acetylation data come from biochemical and in vitro work."
+    "The effect is permanent in platelets, but COX-1 acetylation was incomplete in colorectal tissue.",
+    "Why the effect lasts in platelets (they cannot make new enzyme) is not stated by any cited source.",
+    "Other NSAIDs can compete with low-dose aspirin for COX-1 and weaken its antiplatelet effect, and aspirin resistance occurs in some patients.",
+    "The structure used (6Y3C) has no bound aspirin, and the DiffDock score (-0.25) is below the tool's 'good' threshold of 0. DiffDock cannot model covalent acetylation, so the computational evidence is weak.",
+    "Assigning thromboxane production to the cytoplasm is not supported by a source.",
+    "The mechanism of stomach toxicity is not described in the evidence.",
+    "Other recorded binding partners (COX-2, CYP2C9, IKBKB, TP53) have unclear clinical relevance."
   ],
-  "summary": "Aspirin permanently attaches a small chemical tag to the COX-1 enzyme on the cell's endoplasmic reticulum, which stops the enzyme from making prostaglandins and, in platelets, thromboxane, so blood clots form less easily. The same loss of protective prostaglandins in the stomach lining raises the risk of ulcers and bleeding, and large clinical trials confirm both the heart benefit and the bleeding risk.",
+  "summary": "Aspirin permanently switches off an enzyme called COX-1, which sits on a membrane inside the cell called the endoplasmic reticulum. In platelets this stops production of thromboxane, a signal that makes platelets clump, so blood clots less easily but bleeding becomes more likely.",
   "from_cache": false
 }

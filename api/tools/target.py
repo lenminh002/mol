@@ -19,11 +19,11 @@ CURATED: dict[str, dict] = {
     },
     "cox-1": {
         "name": "COX-1 (PTGS1)",
-        "uniprot": "P05979",
-        "pdb_id": "1PTH",
+        "uniprot": "P23219",
+        "pdb_id": "6Y3C",
         "cell_location": "er",
-        "note": "Prostaglandin H2 synthase on the ER membrane; 1PTH is ovine COX-1 acetylated "
-        "by 2-bromoacetoxy-benzoic acid, an aspirin analog",
+        "note": "Prostaglandin H2 synthase on the ER membrane; 6Y3C is human COX-1 (3.36 Å) "
+        "without a bound aspirin-like ligand",
     },
     "hmg-coa reductase": {
         "name": "HMG-CoA reductase (HMGCR)",

@@ -15,7 +15,6 @@ STRUCTURES = Path(__file__).parent.parent / "data" / "structures"
 # PDB entry -> what the drug is in that structure.
 CURATED_FOCUS: dict[str, dict] = {
     "1IEP": {"ligands": ["STI"], "label": "imatinib (STI-571)"},
-    "1PTH": {"ligands": ["SAL", "0AH"], "label": "salicylate and acetylated Ser530 (aspirin's mark)"},
     "1HWK": {"ligands": ["117"], "label": "atorvastatin"},
     "3ERT": {"ligands": ["OHT"], "label": "4-hydroxytamoxifen (tamoxifen's active form)"},
     "1O86": {"ligands": ["LPR"], "label": "lisinopril"},
@@ -25,7 +24,7 @@ CURATED_FOCUS: dict[str, dict] = {
 NOT_DRUGS = {
     "HOH", "DOD", "NA", "CL", "K", "MG", "ZN", "CA", "MN", "FE", "CU", "CO", "NI", "CD", "IOD", "BR",
     "SO4", "PO4", "POP", "GOL", "EDO", "PEG", "PGE", "PG4", "1PE", "ACT", "DMS", "FMT", "MPD", "TRS",
-    "EPE", "MES", "BOG", "NAG", "NDG", "MAN", "BMA", "FUC", "GAL", "GLC", "HEM", "CIT", "ACY", "IMD",
+    "EPE", "MES", "BOG", "NAG", "NDG", "MAN", "BMA", "FUC", "GAL", "GLC", "HEM", "CIT", "FLC", "ACY", "IMD",
 }
 CUTOFF = 5.0
 

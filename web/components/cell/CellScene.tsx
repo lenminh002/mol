@@ -11,18 +11,21 @@ import { DrugParticles } from "./DrugParticles";
 import { Hotspot, LabelProjector } from "./Hotspot";
 import {
   DRUG_ENTRY,
-  MEMBRANE_RADIUS,
   ORGANELLES,
+  membraneRadiusAt,
   organelleAnims,
 } from "./layout";
 import {
   EndoplasmicReticulum,
+  Golgi,
   Membrane,
   Mitochondria,
   Nucleus,
   Ribosomes,
 } from "./Organelles";
 import { ReasoningPath } from "./ReasoningPath";
+
+const CELL_LABEL = "Human cell · Homo sapiens";
 
 const HOME_CAMERA: [number, number, number, number, number, number] = [
   7, 3.5, 7.5, 0, 0, 0,
@@ -35,7 +38,7 @@ function hotspotPosition(t: Target, index: number): THREE.Vector3 {
     const dir = base
       .normalize()
       .applyAxisAngle(new THREE.Vector3(0, 1, 0), index * 0.5);
-    return dir.multiplyScalar(MEMBRANE_RADIUS);
+    return dir.multiplyScalar(membraneRadiusAt(dir));
   }
   return base.add(new THREE.Vector3(0.35 * index, 0.55, 0.35));
 }
@@ -87,6 +90,9 @@ export function CellScene() {
 
   return (
     <div className="absolute inset-0">
+      <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-md border border-border bg-card/90 px-2 py-1 text-xs text-muted-foreground backdrop-blur">
+        {CELL_LABEL}
+      </div>
       <Canvas
         camera={{
           position: HOME_CAMERA.slice(0, 3) as [number, number, number],
@@ -112,6 +118,7 @@ export function CellScene() {
           <Nucleus anims={anims} highlight={highlight} />
           <Mitochondria anims={anims} highlight={highlight} />
           <EndoplasmicReticulum anims={anims} highlight={highlight} />
+          <Golgi />
           <Ribosomes anims={anims} highlight={highlight} />
         </group>
 

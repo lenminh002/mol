@@ -15,7 +15,7 @@ PRESETS: list[Preset] = [
         id="aspirin-cox1",
         drug="aspirin",
         target="COX-1",
-        pdb_id="1PTH",
+        pdb_id="6Y3C",
         blurb="Irreversibly acetylates COX-1, cutting prostaglandin synthesis (ER)",
     ),
     Preset(

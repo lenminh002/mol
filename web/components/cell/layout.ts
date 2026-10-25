@@ -3,6 +3,18 @@ import type { CellLocation, Direction, Effect, EffectStatus } from "@/lib/types"
 
 export const MEMBRANE_RADIUS = 3;
 
+// Real cells aren't perfect spheres: low-frequency lumps on the membrane (±~4%).
+// Shared by the membrane mesh and hotspot placement so targets stay on the surface.
+export function membraneRadiusAt(dir: THREE.Vector3): number {
+  const bump =
+    0.022 * Math.sin(2.1 * dir.x + 1.3) * Math.sin(1.7 * dir.y + 0.4) +
+    0.018 * Math.sin(2.6 * dir.z - 0.8) * Math.cos(1.9 * dir.x) +
+    0.012 * Math.sin(3.4 * dir.y + 2.2 * dir.z);
+  return MEMBRANE_RADIUS * (1 + bump * 1.6);
+}
+
+export const GOLGI_POSITION = new THREE.Vector3(1.7, -0.2, -1.3);
+
 // Where each organelle lives inside the cell. Hotspots and effects key off these.
 export const ORGANELLES: Record<CellLocation, { position: THREE.Vector3; color: string; label: string }> = {
   membrane: { position: new THREE.Vector3(2.55, 1.15, 1.0), color: "#5eead4", label: "Membrane" },

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { CellLocation } from "@/lib/types";
-import { MEMBRANE_RADIUS, MITO_POSITIONS, ORGANELLES, animFactor, type OrganelleAnim } from "./layout";
+import { GOLGI_POSITION, MITO_POSITIONS, membraneRadiusAt, ORGANELLES, animFactor, type OrganelleAnim } from "./layout";
 
 interface Props {
   anims: Record<CellLocation, OrganelleAnim>;
@@ -48,17 +48,43 @@ function useOrganelleMaterial(loc: CellLocation, { anims, highlight }: Props, op
   return material;
 }
 
+function lumpySphere(scale: number, segments: number) {
+  const geo = new THREE.SphereGeometry(1, segments, segments);
+  const p = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i).normalize();
+    v.multiplyScalar(membraneRadiusAt(v) * scale);
+    p.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
 export function Membrane(props: Props) {
   const material = useOrganelleMaterial("membrane", props, { color: "#0f766e", opacity: 0.12, emissive: 0.25 });
+  const solid = useMemo(() => lumpySphere(1, 96), []);
+  const mesh = useMemo(() => lumpySphere(1.003, 40), []);
   return (
     <group>
-      <mesh material={material}>
-        <sphereGeometry args={[MEMBRANE_RADIUS, 96, 96]} />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[MEMBRANE_RADIUS * 1.003, 40, 40]} />
+      <mesh geometry={solid} material={material} />
+      <mesh geometry={mesh}>
         <meshBasicMaterial color="#5eead4" wireframe transparent opacity={0.05} />
       </mesh>
+    </group>
+  );
+}
+
+// Decorative stack of flattened cisternae; not an effect target.
+export function Golgi() {
+  return (
+    <group position={GOLGI_POSITION} rotation={[0.5, 0.4, 0.3]}>
+      {[0, 1, 2, 3].map((i) => (
+        <mesh key={i} position={[0, (i - 1.5) * 0.17, 0]} scale={[0.6 - i * 0.05, 0.07, 0.42 - i * 0.03]}>
+          <sphereGeometry args={[1, 32, 16]} />
+          <meshStandardMaterial color="#854d0e" emissive="#facc15" emissiveIntensity={0.35} roughness={0.5} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -68,7 +94,7 @@ export function Nucleus(props: Props) {
   return (
     <group position={ORGANELLES.nucleus.position}>
       <mesh material={material}>
-        <sphereGeometry args={[1.0, 64, 64]} />
+        <sphereGeometry args={[1.15, 64, 64]} />
       </mesh>
       {/* nucleolus */}
       <mesh position={[0.25, 0.2, 0.3]}>
@@ -118,7 +144,7 @@ export function Ribosomes(props: Props) {
     const out: THREE.Matrix4[] = [];
     while (out.length < RIBOSOME_COUNT) {
       const p = new THREE.Vector3().randomDirection().multiplyScalar(1.3 + Math.random() * 1.5);
-      if (p.distanceTo(ORGANELLES.nucleus.position) < 1.15) continue;
+      if (p.distanceTo(ORGANELLES.nucleus.position) < 1.3) continue;
       o.position.copy(p);
       o.scale.setScalar(0.6 + Math.random() * 0.6);
       o.updateMatrix();
