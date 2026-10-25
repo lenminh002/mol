@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { X } from "lucide-react";
 import { useHistory } from "@/lib/history";
-import { useRunSimulation } from "@/lib/run";
+import { useLoadRun, useRunSimulation } from "@/lib/run";
 import { API_URL } from "@/lib/sse";
 import { useSim } from "@/lib/store";
 
@@ -56,7 +56,8 @@ function useDrugSuggestions(query: string): string[] {
 export function DrugPanel() {
   const { status, parsed, input } = useSim();
   const run = useRunSimulation();
-  const { items, hydrate, remove, clear } = useHistory();
+  const { items, refresh, remove, clear } = useHistory();
+  const loadRun = useLoadRun();
   const [prompt, setPrompt] = useState("");
   const [suggestion, setSuggestion] = useState(SUGGESTIONS[0]);
   const [drug, setDrug] = useState("");
@@ -67,8 +68,8 @@ export function DrugPanel() {
   // Random pick and history load happen after mount so server and client markup match.
   useEffect(() => {
     setSuggestion(randomSuggestion());
-    hydrate();
-  }, [hydrate]);
+    refresh();
+  }, [refresh]);
 
   // Show what the backend understood a question as, so the user can correct it and re-run.
   useEffect(() => {
@@ -158,7 +159,7 @@ export function DrugPanel() {
               disabled={running}
               onClick={() => {
                 if (h.req.prompt) setPrompt(h.req.prompt);
-                run(h.req);
+                loadRun(h.id);
               }}
               className="min-w-0 flex-1 p-2.5 text-left text-sm disabled:opacity-40"
             >

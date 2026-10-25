@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { DebateTurn, SimEvent, SimulateRequest, SimulationResult } from "./types";
+import type { DebateTurn, SimEvent, SimulateRequest, SimulationResult, StoredRun } from "./types";
 
 type Status = "idle" | "running" | "done" | "error";
 type View = "cell" | "molecule";
@@ -24,6 +24,7 @@ interface SimState {
   setInput: (input: SimulateRequest) => void;
   reset: () => void;
   applyEvent: (event: SimEvent) => void;
+  loadRun: (run: StoredRun) => void;
   setView: (view: View) => void;
   selectTarget: (name: string | null) => void;
   setHighlight: (id: string | null) => void;
@@ -66,9 +67,24 @@ export const useSim = create<SimState>((set) => ({
           return { debate: [...s.debate, event.turn] };
         case "result":
           return { result: event.result, status: "done", statusMessage: "" };
+        case "saved":
+          return {};
         case "error":
           return { status: "error", statusMessage: event.message };
       }
+    }),
+  loadRun: (run) =>
+    set({
+      input: run.req,
+      status: "done",
+      statusMessage: "",
+      debate: run.result.debate,
+      toolCalls: run.tool_calls,
+      result: run.result,
+      parsed: run.parsed,
+      view: "cell",
+      selectedTarget: null,
+      highlight: null,
     }),
   setView: (view) => set({ view }),
   selectTarget: (name) => set({ selectedTarget: name, view: name ? "molecule" : "cell" }),

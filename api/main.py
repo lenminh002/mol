@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sse_starlette.sse import EventSourceResponse
 
+import db
 from agents.orchestrator import cached_result, run_simulation
 from presets import PRESETS
 from tools.binding_site import binding_site
@@ -28,6 +29,7 @@ from schemas import Preset, SimulateRequest
 
 DATA_DIR = Path(__file__).parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
+db.init()
 
 app = FastAPI(title="Mol API")
 app.add_middleware(
@@ -96,20 +98,58 @@ def event(payload: dict) -> dict:
     return {"data": json.dumps(payload)}
 
 
-async def simulate_events(req: SimulateRequest) -> AsyncIterator[dict]:
+async def _replay_or_run(req: SimulateRequest) -> AsyncIterator[dict]:
     # Presets that already ran live replay instantly (pass fresh=true to re-run the debate).
     if not req.fresh and (cached := cached_result(req.preset)):
         cached.from_cache = True
-        yield event({"type": "status", "message": "Replaying a saved debate…"})
+        yield {"type": "status", "message": "Replaying a saved debate…"}
         target = cached.targets[0].name if cached.targets else None
-        yield event({"type": "parsed", "drug": cached.drug.name, "target": target, "context": None})
+        yield {"type": "parsed", "drug": cached.drug.name, "target": target, "context": None}
         for turn in cached.debate:
             await asyncio.sleep(0.4)  # pace the replay so the debate reads as a conversation
-            yield event({"type": "turn", "turn": turn.model_dump()})
-        yield event({"type": "result", "result": cached.model_dump(by_alias=True)})
+            yield {"type": "turn", "turn": turn.model_dump()}
+        yield {"type": "result", "result": cached.model_dump(by_alias=True)}
         return
     async for e in run_simulation(req):
+        yield e
+
+
+async def simulate_events(req: SimulateRequest) -> AsyncIterator[dict]:
+    parsed: dict | None = None
+    tool_calls: list[dict] = []
+    async for e in _replay_or_run(req):
         yield event(e)
+        if e["type"] == "parsed":
+            parsed = {"drug": e["drug"], "target": e["target"]}
+        elif e["type"] == "tool_call":
+            tool_calls.append({"agent": e["agent"], "tool": e["tool"], "args": e["args"]})
+        elif e["type"] == "result":
+            run_id = await asyncio.to_thread(db.save_run, req.model_dump(), e["result"], tool_calls, parsed)
+            yield event({"type": "saved", "id": run_id})
+
+
+@app.get("/history")
+def history() -> list[dict]:
+    return db.list_runs()
+
+
+@app.get("/history/{run_id}")
+def history_item(run_id: str) -> dict:
+    if (run := db.get_run(run_id)) is None:
+        raise HTTPException(404, "No such run")
+    return run
+
+
+@app.delete("/history/{run_id}")
+def history_delete(run_id: str) -> dict:
+    db.delete_run(run_id)
+    return {"ok": True}
+
+
+@app.delete("/history")
+def history_clear() -> dict:
+    db.clear_runs()
+    return {"ok": True}
 
 
 @app.post("/simulate")

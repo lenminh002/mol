@@ -90,4 +90,19 @@ export type SimEvent =
   | { type: "tool_call"; agent: AgentName; tool: string; args: Record<string, unknown> }
   | { type: "turn"; turn: DebateTurn }
   | { type: "result"; result: SimulationResult }
+  | { type: "saved"; id: string }
   | { type: "error"; message: string };
+
+// A finished run stored by the API (GET /history, GET /history/{id})
+export interface HistoryItem {
+  id: string;
+  req: SimulateRequest;
+  label: string;
+  ts: number;
+}
+
+export interface StoredRun extends HistoryItem {
+  result: SimulationResult;
+  tool_calls: { agent: AgentName; tool: string; args: Record<string, unknown> }[];
+  parsed: { drug: string; target: string | null } | null;
+}
