@@ -1,0 +1,37 @@
+{
+  "preset": {
+    "id": "atorvastatin-hmgcr",
+    "drug": "atorvastatin",
+    "target": "HMG-CoA reductase",
+    "pdb_id": "1HWK",
+    "blurb": "Statin that blocks the rate-limiting step of cholesterol synthesis (ER)"
+  },
+  "target": {
+    "name": "HMG-CoA reductase (HMGCR)",
+    "uniprot": "P04035",
+    "pdb_id": "1HWK",
+    "cell_location": "er",
+    "note": "Rate-limiting enzyme of cholesterol synthesis, anchored in the ER membrane; 1HWK is its catalytic portion bound to atorvastatin",
+    "source": "curated",
+    "structure_url": "https://files.rcsb.org/download/1HWK.pdb"
+  },
+  "structure": "structures/1HWK.pdb",
+  "drug": {
+    "name": "atorvastatin",
+    "cid": 60823,
+    "smiles": "CC(C)C1=C(C(=C(N1CC[C@H](C[C@H](CC(=O)O)O)O)C2=CC=C(C=C2)F)C3=CC=CC=C3)C(=O)NC4=CC=CC=C4",
+    "formula": "C33H35FN2O5",
+    "iupac_name": "(3R,5R)-7-[2-(4-fluorophenyl)-3-phenyl-4-(phenylcarbamoyl)-5-propan-2-ylpyrrol-1-yl]-3,5-dihydroxyheptanoic acid",
+    "mw": 558.65,
+    "logp": 6.31,
+    "hbd": 4,
+    "hba": 4,
+    "tpsa": 111.79,
+    "rotatable_bonds": 12,
+    "lipinski_violations": 2,
+    "pubchem_url": "https://pubchem.ncbi.nlm.nih.gov/compound/60823"
+  },
+  "errors": {
+    "docking": "NVIDIA_API_KEY is not set"
+  }
+}

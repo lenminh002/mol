@@ -1,0 +1,37 @@
+{
+  "preset": {
+    "id": "lisinopril-ace",
+    "drug": "lisinopril",
+    "target": "ACE",
+    "pdb_id": "1O86",
+    "blurb": "Blood-pressure medicine that inhibits angiotensin-converting enzyme (membrane)"
+  },
+  "target": {
+    "name": "Angiotensin-converting enzyme (ACE)",
+    "uniprot": "P12821",
+    "pdb_id": "1O86",
+    "cell_location": "membrane",
+    "note": "Membrane-bound peptidase that makes angiotensin II; 1O86 is human testis ACE (equivalent to the somatic C-domain) bound to lisinopril",
+    "source": "curated",
+    "structure_url": "https://files.rcsb.org/download/1O86.pdb"
+  },
+  "structure": "structures/1O86.pdb",
+  "drug": {
+    "name": "lisinopril",
+    "cid": 5362119,
+    "smiles": "C1C[C@H](N(C1)C(=O)[C@H](CCCCN)N[C@@H](CCC2=CC=CC=C2)C(=O)O)C(=O)O",
+    "formula": "C21H31N3O5",
+    "iupac_name": "(2S)-1-[(2S)-6-amino-2-[[(1S)-1-carboxy-3-phenylpropyl]amino]hexanoyl]pyrrolidine-2-carboxylic acid",
+    "mw": 405.5,
+    "logp": 1.24,
+    "hbd": 4,
+    "hba": 5,
+    "tpsa": 132.96,
+    "rotatable_bonds": 12,
+    "lipinski_violations": 0,
+    "pubchem_url": "https://pubchem.ncbi.nlm.nih.gov/compound/5362119"
+  },
+  "errors": {
+    "docking": "NVIDIA_API_KEY is not set"
+  }
+}

@@ -1,0 +1,331 @@
+{
+  "drug": {
+    "name": "atorvastatin",
+    "smiles": "CC(C)C1=C(C(=C(N1CC[C@H](C[C@H](CC(=O)O)O)O)C2=CC=C(C=C2)F)C3=CC=CC=C3)C(=O)NC4=CC=CC=C4",
+    "cid": 60823,
+    "mw": 558.65,
+    "logp": 6.31
+  },
+  "targets": [
+    {
+      "name": "HMG-CoA reductase (HMGCR)",
+      "uniprot": "P04035",
+      "pdb_id": "1HWK",
+      "cell_location": "er",
+      "binding_score": 0.11121825128793716,
+      "pose_pdb_url": "files/poses/1a8224529551.sdf"
+    }
+  ],
+  "effects": [
+    {
+      "pathway": "Mevalonate pathway / cholesterol synthesis (competitive inhibition of HMGCR)",
+      "organelle": "er",
+      "direction": "down",
+      "magnitude": 0.85,
+      "status": "agreed",
+      "confidence": 0.9,
+      "explanation": "Atorvastatin binds the catalytic portion of HMGCR and competes with HMG-CoA, lowering enzyme activity and cholesterol synthesis. The proposer initially missed the competitive-inhibition point, but after the skeptic's correction both sides accepted it.",
+      "source_ids": [
+        "pdb:1HWK",
+        "pmid:24233489",
+        "pmid:12773150",
+        "pmid:28132458"
+      ]
+    },
+    {
+      "pathway": "SREBP-2-driven LDL receptor expression and LDL clearance",
+      "organelle": "nucleus",
+      "direction": "up",
+      "magnitude": 0.75,
+      "status": "agreed",
+      "confidence": 0.8,
+      "explanation": "Lower sterol levels in liver cells raise LDL receptor expression, which speeds LDL clearance. The skeptic raised this point and the proposer conceded it. It is the basis of the clinical LDL lowering (73 vs 129 mg/dL).",
+      "source_ids": [
+        "pmid:33511728",
+        "pmid:16899775",
+        "pmid:27616593"
+      ]
+    },
+    {
+      "pathway": "Compensatory HMGCR upregulation via loss of sterol feedback",
+      "organelle": "er",
+      "direction": "up",
+      "magnitude": 0.5,
+      "status": "agreed",
+      "confidence": 0.75,
+      "explanation": "When sterol synthesis is blocked, cells increase reductase expression and activity to compensate. Inflammatory stress amplifies this response and can cause statin resistance. Both sides supported this effect.",
+      "source_ids": [
+        "pmid:24233489",
+        "pmid:3294493"
+      ]
+    },
+    {
+      "pathway": "CCR7-dependent macrophage emigration from atherosclerotic plaque",
+      "organelle": "nucleus",
+      "direction": "up",
+      "magnitude": 0.4,
+      "status": "speculative",
+      "confidence": 0.4,
+      "explanation": "Statins have been reported to activate CCR7 expression in plaque macrophages, which promotes regression. The skeptic explicitly did not check this claim, and it rests on a single source.",
+      "source_ids": [
+        "pmid:22163030"
+      ]
+    },
+    {
+      "pathway": "Skeletal-muscle mitochondrial function (CoQ10 supply, ATP, ROS)",
+      "organelle": "mitochondria",
+      "direction": "down",
+      "magnitude": 0.4,
+      "status": "disputed",
+      "confidence": 0.4,
+      "explanation": "Animal and in vitro studies report lower ATP, more ROS and reduced CoQ10 in skeletal muscle. However, the evidence on muscle CoQ10 depletion conflicts, and some animal muscle shows unchanged mitochondrial enzyme activities. The proposer retracted the 'leading explanation' claim.",
+      "source_ids": [
+        "pmid:27345130",
+        "pmid:21775390",
+        "pmid:30511338",
+        "pmid:28414942",
+        "pmid:18957876",
+        "pmid:25991405",
+        "pmid:28132458"
+      ]
+    },
+    {
+      "pathway": "Cardiac mitochondrial biogenesis (mitohormesis)",
+      "organelle": "mitochondria",
+      "direction": "up",
+      "magnitude": 0.3,
+      "status": "agreed",
+      "confidence": 0.55,
+      "explanation": "Heart mitochondria show the opposite response to skeletal muscle, with increased biogenesis. Both sides accepted this tissue difference as an observed finding, not as an explanation.",
+      "source_ids": [
+        "pmid:21775390"
+      ]
+    }
+  ],
+  "debate": [
+    {
+      "agent": "proposer",
+      "round": 1,
+      "text": "**Atorvastatin (pubchem:60823): case summary**\n\n**1. Primary target and location: ER.** The target is HMG-CoA reductase (HMGCR; uniprot:P04035). It is the rate-limiting enzyme of cholesterol synthesis and is anchored in the ER membrane [hetionet:CbG, hetionet:GpCC].\n\n**2. Mechanism.** Atorvastatin binds the enzyme's catalytic portion; there is a crystal structure of the two together [pdb:1HWK]. In cells it lowers HMGCR activity and cholesterol synthesis [pmid:24233489]. The usual textbook account is that it competes with HMG-CoA, but none of my sources states that directly.\n\n**3. Downstream effects**\n- **ER:** mevalonate pathway and cholesterol synthesis **decreased** [pmid:24233489]. Less SREBP-2 is held back by feedback, so HMGCR expression **increases** in compensation, and inflammation strengthens this [pmid:24233489].\n- **Nucleus:** SREBP-driven gene expression **increased**, including CCR7 in plaque macrophages, which helps them leave plaques [pmid:22163030]. The standard idea that statins raise LDL receptors is not supported by my sources.\n- **Mitochondria:** making CoQ10 depends on HMGCR, so CoQ10 supply is **decreased** [pmid:28414942]. Skeletal-muscle mitochondria show **decreased** function: lower ATP, more ROS and swelling [pmid:27345130, pmid:21775390, pmid:30511338]. Heart mitochondria show the opposite, **increased** biogenesis [pmid:21775390]. This is the leading explanation for statin muscle damage.\n- **Membrane and ER, drug handling:** other recorded binding partners include uptake transporters (OATPs: SLCO1B3, SLCO1A2, SLCO2B1), the efflux pump ABCB1 and ER enzymes (CYP3A5, CYP2C8, UGT1A1/1A3) [hetionet:CbG].\n\n**4. Evidence strength**\n- **Clinical, strong:** atorvastatin 80 mg brought LDL down to 73 mg/dL vs 129 mg/dL on placebo and cut strokes and major cardiovascular events (HR 0.80 for major events) [pmid:16899775]. Across trials, risk falls by about a quarter per mmol/L of LDL lowered [pmid:27616593].\n- **Structural, strong:** [pdb:1HWK].\n- **In vitro and animal:** mechanism and muscle-toxicity data [pmid:24233489, pmid:27345130].\n- **Computational, weak:** DiffDock's top pose score was 0.11 [dock:1HWK]. That is only a ranking score and just above the \"good\" cutoff of 0, so it adds little beyond the crystal structure.",
+      "model": "Claude",
+      "source_ids": [
+        "hetionet:CbG",
+        "hetionet:GpCC",
+        "pdb:1HWK",
+        "pmid:24233489",
+        "pmid:22163030",
+        "pmid:28414942",
+        "pmid:27345130",
+        "pmid:21775390",
+        "pmid:30511338",
+        "pmid:16899775",
+        "pmid:27616593",
+        "dock:1HWK"
+      ]
+    },
+    {
+      "agent": "skeptic",
+      "round": 1,
+      "text": "1. **Competitive inhibition (Mechanism):** This is wrongly described as unsupported. The literature describes statins as competitive inhibitors of HMG-CoA reductase [pmid:28132458], and kinetics show competition with HMG-CoA [pmid:12773150]. Binding to the catalytic portion is well supported [pdb:1HWK].\n\n2. **LDL receptors:** Saying this is unsupported leaves out the main mechanism. Statins speed up LDL clearance by increasing LDL receptor expression in the liver [pmid:33511728]. This must be included.\n\n3. **Compensatory rise in HMGCR:** Well supported. Reductase activity goes up when sterol synthesis is blocked [pmid:3294493].\n\n4. **Mitochondria \"leading explanation\":** Overstated. Reviews say the mechanisms are \"not fully understood\" [pmid:28132458]. Human data conflict, and animal muscle shows no change in mitochondrial enzyme activities [pmid:25991405]. Evidence that statins lower CoQ10 in muscle is also conflicting [pmid:18957876]. The opposite effects in heart vs skeletal muscle are supported [pmid:21775390].\n\n5. **SPARCL numbers:** Correct (LDL 73 vs 129 mg/dL; HR 0.80) [pmid:16899775]. The stroke benefit was modest, though: HR 0.84, with an unadjusted P of 0.05. Hemorrhagic strokes went up (55 vs 33), which belongs in the clinical context.\n\n6. **Docking:** The score is reported correctly (0.11) [dock:1HWK], and calling it weak evidence is appropriate.\n\n7. **CCR7/macrophages, OATP transporters:** I did not check these. Transporter gene variants are relevant to who gets myopathy [pmid:25991405].\n\nVerdict: CHALLENGED",
+      "model": "Claude (Gemini unavailable)",
+      "source_ids": [
+        "pmid:28132458",
+        "pmid:12773150",
+        "pdb:1HWK",
+        "pmid:33511728",
+        "pmid:3294493",
+        "pmid:25991405",
+        "pmid:18957876",
+        "pmid:21775390",
+        "pmid:16899775",
+        "dock:1HWK"
+      ]
+    },
+    {
+      "agent": "proposer",
+      "round": 2,
+      "text": "**Response to reviewer**\n\nConceded:\n\n1. **Competitive inhibition** — I was wrong to call this unsupported; it is documented [pmid:28132458, pmid:12773150], consistent with catalytic-site binding [pdb:1HWK]. Amended.\n2. **LDL receptor upregulation** — conceded; hepatic LDLR induction accelerating LDL clearance belongs in the mechanism [pmid:33511728].\n4. **Mitochondria** — \"leading explanation\" is overstated. I retract it: mechanisms remain unsettled [pmid:28132458], muscle CoQ10 depletion is conflicting [pmid:18957876], and animal muscle shows unchanged mitochondrial enzyme activities [pmid:25991405]. I retain the observed tissue dissociation (skeletal decline vs cardiac biogenesis) [pmid:21775390] as a finding, not an explanation, and accept transporter variants as myopathy determinants [pmid:25991405].\n5. **SPARCL** — accepted; I should have reported stroke HR 0.84 (P=0.05) and excess hemorrhagic strokes (55 vs 33) [pmid:16899775].\n\nDefended:\n\n3. Compensatory HMGCR upregulation stands [pmid:24233489, pmid:3294493].\n6. Docking remains weak corroboration only [dock:1HWK].\n\nCore claim — HMGCR inhibition driving LDL lowering and event reduction — is unchanged [pmid:16899775, pmid:27616593].",
+      "model": "Claude",
+      "source_ids": [
+        "pmid:28132458",
+        "pmid:12773150",
+        "pdb:1HWK",
+        "pmid:33511728",
+        "pmid:18957876",
+        "pmid:25991405",
+        "pmid:21775390",
+        "pmid:16899775",
+        "pmid:24233489",
+        "pmid:3294493",
+        "dock:1HWK",
+        "pmid:27616593"
+      ]
+    },
+    {
+      "agent": "judge",
+      "round": 3,
+      "text": "The proposer conceded the skeptic's corrections on competitive inhibition, LDL receptor upregulation, the overstated mitochondrial explanation and the SPARCL context, so the core HMGCR-to-LDL-lowering mechanism is agreed. The skeletal-muscle mitochondrial decline remains disputed because the evidence conflicts, and the CCR7 macrophage effect is speculative because nobody verified it.",
+      "model": "Claude",
+      "source_ids": []
+    }
+  ],
+  "reasoning_path": [
+    {
+      "from": "Atorvastatin",
+      "relation": "binds",
+      "to": "HMGCR",
+      "source_id": "hetionet:CbG"
+    },
+    {
+      "from": "HMGCR",
+      "relation": "located in",
+      "to": "endoplasmic reticulum membrane",
+      "source_id": "hetionet:GpCC"
+    },
+    {
+      "from": "endoplasmic reticulum membrane",
+      "relation": "is part of",
+      "to": "er",
+      "source_id": "hetionet:GpCC"
+    },
+    {
+      "from": "Atorvastatin",
+      "relation": "competitively inhibits (catalytic site)",
+      "to": "HMGCR activity / cholesterol synthesis",
+      "source_id": "pmid:12773150"
+    },
+    {
+      "from": "Reduced intracellular cholesterol",
+      "relation": "upregulates",
+      "to": "hepatic LDL receptor expression and LDL clearance",
+      "source_id": "pmid:33511728"
+    },
+    {
+      "from": "LDL lowering",
+      "relation": "reduces",
+      "to": "major cardiovascular events (HR 0.80)",
+      "source_id": "pmid:16899775"
+    }
+  ],
+  "citations": [
+    {
+      "id": "pdb:1HWK",
+      "title": "PDB 1HWK: HMG-CoA reductase (HMGCR) structure",
+      "url": "https://www.rcsb.org/structure/1HWK",
+      "pmid": null
+    },
+    {
+      "id": "dock:1HWK",
+      "title": "DiffDock pose: atorvastatin → HMG-CoA reductase (HMGCR)",
+      "url": "https://www.rcsb.org/structure/1HWK",
+      "pmid": null
+    },
+    {
+      "id": "pmid:24233489",
+      "title": "Inflammatory stress induces statin resistance by disrupting 3-hydroxy-3-methylglutaryl-CoA reductase feedback regulation",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/24233489/",
+      "pmid": "24233489"
+    },
+    {
+      "id": "pmid:22163030",
+      "title": "Statins promote the regression of atherosclerosis via activation of the CCR7-dependent emigration pathway in macrophages",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/22163030/",
+      "pmid": "22163030"
+    },
+    {
+      "id": "hetionet:CbG",
+      "title": "Hetionet v1.0: Compound–binds–Gene (BindingDB, DrugBank, DrugCentral)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "hetionet:GpCC",
+      "title": "Hetionet v1.0: Gene–participates–Cellular Component (Gene Ontology)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "pmid:30511338",
+      "title": "PGC-1β modulates statin-associated myotoxicity in mice",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/30511338/",
+      "pmid": "30511338"
+    },
+    {
+      "id": "pmid:27345130",
+      "title": "Elucidation of the mechanism of atorvastatin-induced myopathy in a rat model",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27345130/",
+      "pmid": "27345130"
+    },
+    {
+      "id": "pmid:21775390",
+      "title": "Opposite effects of statins on mitochondria of cardiac and skeletal muscles: a 'mitohormesis' mechanism involving reactive oxygen species and PGC-1",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/21775390/",
+      "pmid": "21775390"
+    },
+    {
+      "id": "pmid:28414942",
+      "title": "Coenzyme Q10 protects against statin-induced myotoxicity in zebrafish larvae (Danio rerio)",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/28414942/",
+      "pmid": "28414942"
+    },
+    {
+      "id": "pmid:16899775",
+      "title": "High-dose atorvastatin after stroke or transient ischemic attack",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/16899775/",
+      "pmid": "16899775"
+    },
+    {
+      "id": "pmid:27616593",
+      "title": "Interpretation of the evidence for the efficacy and safety of statin therapy",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27616593/",
+      "pmid": "27616593"
+    },
+    {
+      "id": "pmid:3294493",
+      "title": "Chemistry, biochemistry, and pharmacology of HMG-CoA reductase inhibitors",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/3294493/",
+      "pmid": "3294493"
+    },
+    {
+      "id": "pmid:12773150",
+      "title": "Molecular mechanism for inhibition of 3-hydroxy-3-methylglutaryl CoA (HMG-CoA) reductase by rosuvastatin",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/12773150/",
+      "pmid": "12773150"
+    },
+    {
+      "id": "pmid:28132458",
+      "title": "[Statins and mitochondria]",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/28132458/",
+      "pmid": "28132458"
+    },
+    {
+      "id": "pmid:25991405",
+      "title": "The role of mitochondria in statin-induced myopathy",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/25991405/",
+      "pmid": "25991405"
+    },
+    {
+      "id": "pmid:33511728",
+      "title": "Effects of statins on mitochondrial pathways",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/33511728/",
+      "pmid": "33511728"
+    },
+    {
+      "id": "pmid:18957876",
+      "title": "Effects of ubiquinone (coenzyme Q10) on myopathy in statin users",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/18957876/",
+      "pmid": "18957876"
+    }
+  ],
+  "caveats": [
+    "The mitochondrial myotoxicity mechanisms remain unsettled. Human data conflict, and findings on muscle CoQ10 depletion are inconsistent.",
+    "The mitochondrial effects depend on tissue type: skeletal muscle declines while heart muscle shows increased biogenesis.",
+    "Much of the downstream mechanism evidence comes from in vitro or animal studies, including the CCR7 macrophage findings and the myotoxicity models.",
+    "The DiffDock confidence of 0.11 is a computational ranking score, not a binding affinity, and adds little beyond the 1HWK crystal structure.",
+    "In SPARCL the stroke benefit was modest (HR 0.84, P=0.05) and hemorrhagic strokes increased (55 vs 33).",
+    "Inflammatory stress can disrupt HMGCR feedback and cause statin resistance.",
+    "Transporter gene variants influence who develops myopathy."
+  ],
+  "summary": "Atorvastatin blocks HMG-CoA reductase, an enzyme on the endoplasmic reticulum that makes cholesterol, so liver cells make less cholesterol and pull more LDL ('bad') cholesterol out of the blood. This lowers LDL and reduces heart attacks and strokes, while possible side effects on muscle mitochondria are still debated.",
+  "from_cache": false
+}

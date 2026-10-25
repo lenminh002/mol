@@ -1,0 +1,267 @@
+{
+  "drug": {
+    "name": "tamoxifen",
+    "smiles": "CC/C(=C(\\C1=CC=CC=C1)/C2=CC=C(C=C2)OCCN(C)C)/C3=CC=CC=C3",
+    "cid": 2733526,
+    "mw": 371.52,
+    "logp": 6.0
+  },
+  "targets": [
+    {
+      "name": "Estrogen receptor alpha (ESR1)",
+      "uniprot": "P03372",
+      "pdb_id": "3ERT",
+      "cell_location": "nucleus",
+      "binding_score": -0.26136013865470886,
+      "pose_pdb_url": "files/poses/f109f01b04bb.sdf"
+    }
+  ],
+  "effects": [
+    {
+      "pathway": "Estrogen-driven transcription (AF-2 coactivator recruitment)",
+      "organelle": "nucleus",
+      "direction": "block",
+      "magnitude": 0.85,
+      "status": "agreed",
+      "confidence": 0.88,
+      "explanation": "4-hydroxytamoxifen occupies the ligand pocket and repositions helix 12 into the coactivator groove, blocking AF-2 and shutting down estrogen-responsive gene activation, including growth factor genes, in breast tumour cells.",
+      "source_ids": [
+        "pmid:9875847",
+        "pdb:3ERT",
+        "pmid:8939643",
+        "hetionet:CbG"
+      ]
+    },
+    {
+      "pathway": "Partial agonism via AF-1 (tissue-selective estrogen-like signalling in bone/endometrium)",
+      "organelle": "nucleus",
+      "direction": "up",
+      "magnitude": 0.4,
+      "status": "agreed",
+      "confidence": 0.6,
+      "explanation": "Because AF-1 remains active while AF-2 is blocked, the drug behaves like estrogen in some tissues, which is the accepted explanation for reduced bone loss alongside increased endometrial cancer and thromboembolic risk.",
+      "source_ids": [
+        "pmid:8939643",
+        "pmid:17890211",
+        "pmid:12846124"
+      ]
+    },
+    {
+      "pathway": "G1 cell-cycle arrest and apoptosis in breast cancer cells",
+      "organelle": "cytoplasm",
+      "direction": "up",
+      "magnitude": 0.5,
+      "status": "speculative",
+      "confidence": 0.35,
+      "explanation": "Proposer flagged this himself as weak: the supporting data come from cell-line experiments combining tamoxifen with other agents rather than from tamoxifen alone, and no independent reviewer tested the claim.",
+      "source_ids": [
+        "pmid:27432642",
+        "pmid:35975200"
+      ]
+    },
+    {
+      "pathway": "Hepatic CYP and cholesterol-biosynthesis enzyme off-target binding (CYP2C9, CYP3A7, CYP19A1, EBP, DHCR7)",
+      "organelle": "er",
+      "direction": "down",
+      "magnitude": 0.3,
+      "status": "speculative",
+      "confidence": 0.3,
+      "explanation": "Binding records in the knowledge graph list these ER-resident enzymes as tamoxifen partners, and serum cholesterol falls on therapy, but no functional evidence in this evidence set ties the two together.",
+      "source_ids": [
+        "hetionet:CbG",
+        "pmid:17890211",
+        "hetionet:CcSE"
+      ]
+    },
+    {
+      "pathway": "Related nuclear receptor engagement (ESR2, ESRRA/ERR-gamma)",
+      "organelle": "nucleus",
+      "direction": "block",
+      "magnitude": 0.3,
+      "status": "speculative",
+      "confidence": 0.35,
+      "explanation": "Structural studies show hydroxytamoxifen also occupies a second site on ER-beta and deactivates estrogen-related receptor gamma, so additional nuclear receptor effects are plausible but not demonstrated clinically here.",
+      "source_ids": [
+        "pmid:16782818",
+        "pmid:15161930",
+        "pmid:41111053",
+        "hetionet:CbG"
+      ]
+    }
+  ],
+  "debate": [
+    {
+      "agent": "proposer",
+      "round": 1,
+      "text": "**Tamoxifen → estrogen receptor alpha (ESR1): case for the panel**\n\n**1. Target and location:** The primary target is ESR1 [uniprot:P03372], a transcription factor that sits in the **nucleus**. The knowledge graph links tamoxifen → ESR1 → chromosome → nucleus [hetionet:CbG, hetionet:GpCC].\n\n**2. Mechanism:** Tamoxifen's active metabolite, 4-hydroxytamoxifen, binds the receptor's estrogen pocket. Once bound, helix 12 of the receptor folds into the groove where coactivators normally dock and blocks them [pmid:9875847, pdb:3ERT]. It blocks one of the receptor's activation regions (AF-2) but activates another (AF-1). That split explains why it acts against estrogen in breast tissue and like estrogen in bone and endometrium [pmid:8939643]. My sources don't cover the liver step that turns tamoxifen into its active form, so that claim is unsupported here.\n\n**3. Downstream effects:**\n- Nucleus: estrogen-driven gene activation **blocked** in breast tumours, including growth factors such as TGF-α and IGF-1 [pmid:8939643].\n- Nucleus/cytoplasm: G1 cell-cycle arrest and apoptosis **increased**. This comes only from cell-line studies that combine tamoxifen with other agents, so it is weak [pmid:27432642].\n- Estrogen-like effects: endometrial cancer and blood-clot risk **increased**; cholesterol **decreased**; bone loss **decreased** [pmid:17890211, pmid:12846124].\n- Off-targets: liver enzymes in the **er** (CYP2C9, CYP3A7, aromatase/CYP19A1), cholesterol-pathway enzymes (EBP, DHCR7), ESR2 and ESRRA [hetionet:CbG]. The database records 222 side effects [hetionet:CcSE].\n\n**4. Evidence strength:**\n- **Clinical, strong:** in the NSABP P-1 prevention trial, tamoxifen cut invasive breast cancer risk by 49% [pmid:12846124]. Aromatase inhibitors beat it in head-to-head adjuvant trials [pmid:12421108].\n- **Structural, strong:** the crystal structure with the active metabolite [pdb:3ERT, pmid:9875847].\n- **Computational, weak:** docking scored −0.26, below the 0 threshold for a good pose [dock:3ERT]. This is only a ranking score, not binding strength. I docked the parent drug, not the metabolite in the crystal structure, so the low score doesn't contradict the structure.",
+      "model": "Claude",
+      "source_ids": [
+        "uniprot:P03372",
+        "hetionet:CbG",
+        "hetionet:GpCC",
+        "pmid:9875847",
+        "pdb:3ERT",
+        "pmid:8939643",
+        "pmid:27432642",
+        "pmid:17890211",
+        "pmid:12846124",
+        "hetionet:CcSE",
+        "pmid:12421108",
+        "dock:3ERT"
+      ]
+    },
+    {
+      "agent": "judge",
+      "round": 2,
+      "text": "No skeptic participated, so the verdict accepts only the structurally and clinically cited claims as agreed and downgrades everything else, including the proposer's own self-flagged weak claims, to speculative with reduced confidence.",
+      "model": "Claude",
+      "source_ids": []
+    }
+  ],
+  "reasoning_path": [
+    {
+      "from": "Tamoxifen",
+      "relation": "binds",
+      "to": "ESR1",
+      "source_id": "hetionet:CbG"
+    },
+    {
+      "from": "ESR1",
+      "relation": "located in",
+      "to": "chromosome",
+      "source_id": "hetionet:GpCC"
+    },
+    {
+      "from": "chromosome",
+      "relation": "is part of",
+      "to": "nucleus",
+      "source_id": "hetionet:GpCC"
+    },
+    {
+      "from": "Tamoxifen-bound ESR1",
+      "relation": "blocks coactivator docking via helix 12",
+      "to": "AF-2 transcriptional activation",
+      "source_id": "pmid:9875847"
+    },
+    {
+      "from": "AF-2 blockade",
+      "relation": "shuts down",
+      "to": "estrogen-driven growth factor gene expression",
+      "source_id": "pmid:8939643"
+    },
+    {
+      "from": "Loss of estrogen-driven proliferation signals",
+      "relation": "reduces",
+      "to": "breast cancer incidence and growth",
+      "source_id": "pmid:12846124"
+    }
+  ],
+  "citations": [
+    {
+      "id": "uniprot:P03372",
+      "title": "UniProt P03372: Estrogen receptor alpha (ESR1)",
+      "url": "https://www.uniprot.org/uniprotkb/P03372",
+      "pmid": null
+    },
+    {
+      "id": "pdb:3ERT",
+      "title": "PDB 3ERT: Estrogen receptor alpha (ESR1) structure",
+      "url": "https://www.rcsb.org/structure/3ERT",
+      "pmid": null
+    },
+    {
+      "id": "dock:3ERT",
+      "title": "DiffDock pose: tamoxifen → Estrogen receptor alpha (ESR1)",
+      "url": "https://www.rcsb.org/structure/3ERT",
+      "pmid": null
+    },
+    {
+      "id": "pmid:41111053",
+      "title": "Nuclear receptor ESRRA promotes ERα-positive breast cancer through dual action on super enhancers and promoters to regulate gene transcriptional programs",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/41111053/",
+      "pmid": "41111053"
+    },
+    {
+      "id": "pmid:8939643",
+      "title": "Transcription-modulating drugs: mechanism and selectivity",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/8939643/",
+      "pmid": "8939643"
+    },
+    {
+      "id": "hetionet:CbG",
+      "title": "Hetionet v1.0: Compound–binds–Gene (BindingDB, DrugBank, DrugCentral)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "hetionet:GpCC",
+      "title": "Hetionet v1.0: Gene–participates–Cellular Component (Gene Ontology)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "hetionet:CcSE",
+      "title": "Hetionet v1.0: Compound–causes–Side Effect (SIDER)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "pmid:9875847",
+      "title": "The structural basis of estrogen receptor/coactivator recognition and the antagonism of this interaction by tamoxifen",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/9875847/",
+      "pmid": "9875847"
+    },
+    {
+      "id": "pmid:16782818",
+      "title": "A second binding site for hydroxytamoxifen within the coactivator-binding groove of estrogen receptor beta",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/16782818/",
+      "pmid": "16782818"
+    },
+    {
+      "id": "pmid:15161930",
+      "title": "Structural basis for the deactivation of the estrogen-related receptor gamma by diethylstilbestrol or 4-hydroxytamoxifen and determinants of selectivity",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/15161930/",
+      "pmid": "15161930"
+    },
+    {
+      "id": "pmid:12846124",
+      "title": "Update on breast cancer prevention",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/12846124/",
+      "pmid": "12846124"
+    },
+    {
+      "id": "pmid:17890211",
+      "title": "Safety profiles of tamoxifen and the aromatase inhibitors in adjuvant therapy of hormone-responsive early breast cancer",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/17890211/",
+      "pmid": "17890211"
+    },
+    {
+      "id": "pmid:12421108",
+      "title": "Anastrozole: in early breast cancer",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/12421108/",
+      "pmid": "12421108"
+    },
+    {
+      "id": "pmid:27432642",
+      "title": "Berberine enhances the anti‑tumor activity of tamoxifen in drug‑sensitive MCF‑7 and drug‑resistant MCF‑7/TAM cells",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27432642/",
+      "pmid": "27432642"
+    },
+    {
+      "id": "pmid:35975200",
+      "title": "High efficacy of tamoxifen-loaded L-lysine coated magnetic iron oxide nanoparticles in cell cycle arrest and anti-cancer activity for breast cancer therapy",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/35975200/",
+      "pmid": "35975200"
+    }
+  ],
+  "caveats": [
+    "No skeptic review was available for this run, so no claim was independently challenged; non-cited effects are marked speculative by default.",
+    "The docking run scored -0.26, below the threshold normally considered good, and DiffDock confidence is a ranking score rather than a binding affinity [dock:3ERT].",
+    "The parent drug was docked, whereas the crystal structure 3ERT contains the active metabolite 4-hydroxytamoxifen, so the computational result neither confirms nor contradicts the structural evidence.",
+    "The evidence set contains no source covering hepatic conversion of tamoxifen to 4-hydroxytamoxifen, a required step for the proposed mechanism.",
+    "Cell-cycle arrest and apoptosis data come from in vitro breast cancer cell lines, often in combination with other agents, not from tamoxifen monotherapy in patients.",
+    "Effects are strongly tissue-dependent (antagonist in breast, agonist in bone and endometrium), and ESR1 mutations can alter the response in metastatic disease [pmid:34392831]."
+  ],
+  "summary": "Tamoxifen's active form slips into the estrogen receptor alpha pocket inside the cell nucleus and jams the receptor's docking site for the helper proteins it needs to switch on growth genes, so estrogen-fuelled breast cancer cells stop receiving their growth signal. Because the receptor keeps a second, separate activation switch, the drug still acts like estrogen in other tissues, which explains both its bone-protective benefit and its endometrial and clotting risks.",
+  "from_cache": false
+}

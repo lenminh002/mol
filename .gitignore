@@ -1,0 +1,13 @@
+.env
+.DS_Store
+node_modules/
+.next/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# regenerable downloads / tool cache (scripts/precompute_presets.py rebuilds them)
+api/data/structures/
+api/cache/tools/
+api/data/hetionet/
+api/data/audio/

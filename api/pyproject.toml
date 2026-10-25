@@ -1,0 +1,28 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=2.3.0",
+    "elasticsearch>=9.5.1",
+    "fastapi[standard]>=0.162.0",
+    "google-genai>=2.33.0",
+    "httpx>=0.28.1",
+    "networkx>=3.7",
+    "pydantic>=2.14.1",
+    "python-dotenv>=1.2.4",
+    "rdkit>=2026.9.1",
+    "sse-starlette>=3.5.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = ["network: hits PubChem/UniProt/RCSB", "docking: needs NVIDIA_API_KEY"]

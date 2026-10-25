@@ -1,0 +1,37 @@
+{
+  "preset": {
+    "id": "imatinib-bcrabl",
+    "drug": "imatinib",
+    "target": "BCR-ABL",
+    "pdb_id": "1IEP",
+    "blurb": "Kinase inhibitor for chronic myeloid leukemia (cytoplasm)"
+  },
+  "target": {
+    "name": "BCR-ABL (ABL1 kinase domain)",
+    "uniprot": "P00519",
+    "pdb_id": "1IEP",
+    "cell_location": "cytoplasm",
+    "note": "Constitutively active fusion kinase in chronic myeloid leukemia",
+    "source": "curated",
+    "structure_url": "https://files.rcsb.org/download/1IEP.pdb"
+  },
+  "structure": "structures/1IEP.pdb",
+  "drug": {
+    "name": "imatinib",
+    "cid": 5291,
+    "smiles": "CC1=C(C=C(C=C1)NC(=O)C2=CC=C(C=C2)CN3CCN(CC3)C)NC4=NC=CC(=N4)C5=CN=CC=C5",
+    "formula": "C29H31N7O",
+    "iupac_name": "4-[(4-methylpiperazin-1-yl)methyl]-N-[4-methyl-3-[(4-pyridin-3-ylpyrimidin-2-yl)amino]phenyl]benzamide",
+    "mw": 493.62,
+    "logp": 4.59,
+    "hbd": 2,
+    "hba": 7,
+    "tpsa": 86.28,
+    "rotatable_bonds": 7,
+    "lipinski_violations": 0,
+    "pubchem_url": "https://pubchem.ncbi.nlm.nih.gov/compound/5291"
+  },
+  "errors": {
+    "docking": "NVIDIA_API_KEY is not set"
+  }
+}

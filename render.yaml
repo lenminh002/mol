@@ -1,0 +1,27 @@
+# Render Blueprint for the Mol API (Docker). In Render: New → Blueprint → pick this repo.
+# Secrets are marked sync: false, so Render asks for them on first deploy instead of storing them here.
+services:
+  - type: web
+    name: mol-api
+    runtime: docker
+    rootDir: api
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: ALLOWED_ORIGINS        # your Vercel URL and custom domain, comma-separated
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ELASTIC_URL
+        sync: false
+      - key: ELASTIC_API_KEY
+        sync: false
+      - key: CARTESIA_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: BRIGHTDATA_API_KEY
+        sync: false

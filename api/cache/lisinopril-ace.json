@@ -1,0 +1,242 @@
+{
+  "drug": {
+    "name": "lisinopril",
+    "smiles": "C1C[C@H](N(C1)C(=O)[C@H](CCCCN)N[C@@H](CCC2=CC=CC=C2)C(=O)O)C(=O)O",
+    "cid": 5362119,
+    "mw": 405.5,
+    "logp": 1.24
+  },
+  "targets": [
+    {
+      "name": "Angiotensin-converting enzyme (ACE)",
+      "uniprot": "P12821",
+      "pdb_id": "1O86",
+      "cell_location": "membrane",
+      "binding_score": -0.48180198669433594,
+      "pose_pdb_url": "files/poses/65d05bca1038.sdf"
+    }
+  ],
+  "effects": [
+    {
+      "pathway": "Angiotensin I to angiotensin II conversion",
+      "organelle": "membrane",
+      "direction": "block",
+      "magnitude": 0.9,
+      "status": "agreed",
+      "confidence": 0.85,
+      "explanation": "Lisinopril binds the ACE active site, as shown in the human ACE–lisinopril co-crystal structure. This stops ACE from converting angiotensin I into angiotensin II.",
+      "source_ids": [
+        "pdb:1O86",
+        "pmid:12540854",
+        "pmid:1327601",
+        "hetionet:CbG"
+      ]
+    },
+    {
+      "pathway": "Bradykinin breakdown (kininase II activity)",
+      "organelle": "membrane",
+      "direction": "up",
+      "magnitude": 0.6,
+      "status": "agreed",
+      "confidence": 0.7,
+      "explanation": "ACE is the same enzyme as kininase II. Inhibiting it slows bradykinin breakdown, so bradykinin activity rises.",
+      "source_ids": [
+        "pmid:1327601",
+        "pmid:8292107"
+      ]
+    },
+    {
+      "pathway": "Angiotensin II-driven protein synthesis and cardiac hypertrophy",
+      "organelle": "cytoplasm",
+      "direction": "down",
+      "magnitude": 0.5,
+      "status": "agreed",
+      "confidence": 0.55,
+      "explanation": "With less angiotensin II, its growth-promoting signal to cardiomyocytes is reduced. A review links ACE inhibitors to regression of left ventricular hypertrophy.",
+      "source_ids": [
+        "pmid:1327601"
+      ]
+    },
+    {
+      "pathway": "Fibrous tissue formation (cardiac fibrosis)",
+      "organelle": "cytoplasm",
+      "direction": "down",
+      "magnitude": 0.4,
+      "status": "agreed",
+      "confidence": 0.45,
+      "explanation": "In vivo work on heart connective tissue and repair reports less fibrous tissue formation when ACE is inhibited.",
+      "source_ids": [
+        "pmid:7755273"
+      ]
+    },
+    {
+      "pathway": "Glomerular capillary pressure and proteinuria",
+      "organelle": "membrane",
+      "direction": "down",
+      "magnitude": 0.4,
+      "status": "agreed",
+      "confidence": 0.45,
+      "explanation": "In MWF rats, ACE inhibition lowered glomerular capillary pressure and proteinuria. This is animal data only.",
+      "source_ids": [
+        "pmid:8788596"
+      ]
+    },
+    {
+      "pathway": "Bradykinin-related adverse effects (angioedema, cholestatic liver injury)",
+      "organelle": "cytoplasm",
+      "direction": "up",
+      "magnitude": 0.2,
+      "status": "speculative",
+      "confidence": 0.3,
+      "explanation": "Angioedema is a recorded side effect, and case reports describe liver injury. The proposed link to higher bradykinin activity is only suggested, not directly shown.",
+      "source_ids": [
+        "hetionet:CcSE",
+        "pmid:8292107"
+      ]
+    }
+  ],
+  "debate": [
+    {
+      "agent": "proposer",
+      "round": 1,
+      "text": "**Lisinopril (C21H31N3O5, MW 405.5, logP 1.24, no Lipinski violations [pubchem:5362119]) acting on ACE**\n\n**1. Primary target and location: membrane.** The target is angiotensin‑converting enzyme (ACE), a peptidase bound to the cell membrane [uniprot:P12821]. The knowledge‑graph path runs lisinopril → binds ACE → cell surface → membrane [hetionet:CbG; hetionet:GpCC].\n\n**2. Molecular mechanism.** Lisinopril is a lysine analog of enalapril [pmid:1327601]. It binds the active site of ACE, the step shown in the crystal structure of human testis ACE (equivalent to the somatic C‑domain) bound to lisinopril [pdb:1O86]. This stops angiotensin I from being converted to angiotensin II. It also stops bradykinin from being broken down, since ACE is the same enzyme as kininase II [pmid:1327601; pmid:8292107]. The detail that lisinopril holds the active‑site zinc is not supported by the sources I retrieved.\n\n**3. Downstream effects**\n- **Membrane / extracellular:** angiotensin II production is **blocked**. Bradykinin activity is **increased** [pmid:1327601; pmid:8788596].\n- **Cytoplasm (cardiomyocytes):** protein synthesis driven by angiotensin II is **decreased**, which may stop heart‑wall thickening (hypertrophy) [pmid:1327601].\n- **Extracellular matrix:** fibrous tissue formation is **decreased** in vivo [pmid:7755273].\n- **Kidney:** proteinuria and glomerular capillary pressure are **decreased** in rats [pmid:8788596].\n- **Toxicity:** angioedema is a recorded side effect [hetionet:CcSE]. Cholestatic liver injury may be linked to higher bradykinin activity [pmid:8292107].\n- **Other recorded binding partners:** ABCB1, SLC15A1 and ACE2 [hetionet:CbG].\n\n**4. Strength of evidence**\n- **Structural:** strong, from the co‑crystal structure [pdb:1O86].\n- **In vitro and animal:** supportive [pmid:7755273; pmid:8788596].\n- **Clinical:** limited to reviews and case reports [pmid:1327601; pmid:8292107]. I retrieved no trial records.\n- **Computational:** weak. DiffDock's best confidence was −0.48, below the usual 0 cutoff, though it is only a ranking score [dock:1O86]. The crystal structure outweighs it.",
+      "model": "Claude",
+      "source_ids": [
+        "pubchem:5362119",
+        "uniprot:P12821",
+        "hetionet:CbG",
+        "hetionet:GpCC",
+        "pmid:1327601",
+        "pdb:1O86",
+        "pmid:8292107",
+        "pmid:8788596",
+        "pmid:7755273",
+        "hetionet:CcSE",
+        "dock:1O86"
+      ]
+    },
+    {
+      "agent": "judge",
+      "round": 2,
+      "text": "With no skeptic input, the well-cited effects were accepted as agreed with moderated confidence, scaled to evidence quality (crystal structure over animal data). Bradykinin-linked toxicity was marked speculative because the mechanistic link is only suggested.",
+      "model": "Claude",
+      "source_ids": []
+    }
+  ],
+  "reasoning_path": [
+    {
+      "from": "Lisinopril",
+      "relation": "binds",
+      "to": "ACE",
+      "source_id": "hetionet:CbG"
+    },
+    {
+      "from": "ACE",
+      "relation": "located in",
+      "to": "cell surface",
+      "source_id": "hetionet:GpCC"
+    },
+    {
+      "from": "cell surface",
+      "relation": "is part of",
+      "to": "membrane",
+      "source_id": "hetionet:GpCC"
+    },
+    {
+      "from": "Lisinopril-bound ACE",
+      "relation": "cannot convert",
+      "to": "angiotensin I to angiotensin II",
+      "source_id": "pmid:12540854"
+    },
+    {
+      "from": "reduced angiotensin II",
+      "relation": "decreases",
+      "to": "cardiomyocyte protein synthesis and hypertrophy",
+      "source_id": "pmid:1327601"
+    }
+  ],
+  "citations": [
+    {
+      "id": "pubchem:5362119",
+      "title": "PubChem: lisinopril",
+      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/5362119",
+      "pmid": null
+    },
+    {
+      "id": "uniprot:P12821",
+      "title": "UniProt P12821: Angiotensin-converting enzyme (ACE)",
+      "url": "https://www.uniprot.org/uniprotkb/P12821",
+      "pmid": null
+    },
+    {
+      "id": "pdb:1O86",
+      "title": "PDB 1O86: Angiotensin-converting enzyme (ACE) structure",
+      "url": "https://www.rcsb.org/structure/1O86",
+      "pmid": null
+    },
+    {
+      "id": "dock:1O86",
+      "title": "DiffDock pose: lisinopril → Angiotensin-converting enzyme (ACE)",
+      "url": "https://www.rcsb.org/structure/1O86",
+      "pmid": null
+    },
+    {
+      "id": "pmid:1327601",
+      "title": "ACE inhibitors and regression of left ventricular hypertrophy",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/1327601/",
+      "pmid": "1327601"
+    },
+    {
+      "id": "pmid:7755273",
+      "title": "Connective tissue and repair in the heart. Potential regulatory mechanisms",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/7755273/",
+      "pmid": "7755273"
+    },
+    {
+      "id": "pmid:8292107",
+      "title": "Hepatotoxicity associated with angiotensin-converting enzyme inhibitors",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/8292107/",
+      "pmid": "8292107"
+    },
+    {
+      "id": "pmid:8788596",
+      "title": "Comparison of the effects of angiotensin-converting enzyme inhibition and angiotensin II receptor blockade on the evolution of spontaneous glomerular injury in male MWF/Ztm rats",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/8788596/",
+      "pmid": "8788596"
+    },
+    {
+      "id": "hetionet:GpCC",
+      "title": "Hetionet v1.0: Gene–participates–Cellular Component (Gene Ontology)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "hetionet:CbG",
+      "title": "Hetionet v1.0: Compound–binds–Gene (BindingDB, DrugBank, DrugCentral)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "hetionet:CcSE",
+      "title": "Hetionet v1.0: Compound–causes–Side Effect (SIDER)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "pmid:12540854",
+      "title": "Crystal structure of the human angiotensin-converting enzyme-lisinopril complex",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/12540854/",
+      "pmid": "12540854"
+    }
+  ],
+  "caveats": [
+    "No skeptic review was available, so this case was not independently challenged. 'Agreed' here means cited and uncontested, not verified.",
+    "DiffDock's best confidence (-0.48) is below the usual 0 threshold and is only a ranking score. Binding is supported by the co-crystal structure (1O86), not by the docking.",
+    "The 1O86 structure is testis ACE, equivalent to the somatic C-domain only. N-domain binding is not directly shown here.",
+    "The kidney and fibrosis effects come from animal or in vivo models. The hypertrophy evidence comes from a review rather than primary trial data.",
+    "Liver injury and angioedema are rare. Their mechanism (bradykinin) is proposed, not established.",
+    "The claim that lisinopril coordinates the active-site zinc was not supported by the retrieved sources and is not included."
+  ],
+  "summary": "Lisinopril attaches to an enzyme called ACE on the cell surface and blocks it, so the body makes less angiotensin II, a hormone that tightens blood vessels and drives heart and kidney damage. It also lets a vessel-relaxing peptide called bradykinin build up, which helps lower blood pressure but may explain side effects such as swelling (angioedema).",
+  "from_cache": false
+}

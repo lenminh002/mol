@@ -1,0 +1,37 @@
+{
+  "preset": {
+    "id": "tamoxifen-esr1",
+    "drug": "tamoxifen",
+    "target": "estrogen receptor alpha",
+    "pdb_id": "3ERT",
+    "blurb": "Breast cancer drug that blocks estrogen signalling in the nucleus"
+  },
+  "target": {
+    "name": "Estrogen receptor alpha (ESR1)",
+    "uniprot": "P03372",
+    "pdb_id": "3ERT",
+    "cell_location": "nucleus",
+    "note": "Ligand-activated transcription factor; 3ERT is its ligand-binding domain bound to 4-hydroxytamoxifen, tamoxifen's active metabolite",
+    "source": "curated",
+    "structure_url": "https://files.rcsb.org/download/3ERT.pdb"
+  },
+  "structure": "structures/3ERT.pdb",
+  "drug": {
+    "name": "tamoxifen",
+    "cid": 2733526,
+    "smiles": "CC/C(=C(\\C1=CC=CC=C1)/C2=CC=C(C=C2)OCCN(C)C)/C3=CC=CC=C3",
+    "formula": "C26H29NO",
+    "iupac_name": "2-[4-[(Z)-1,2-diphenylbut-1-enyl]phenoxy]-N,N-dimethylethanamine",
+    "mw": 371.52,
+    "logp": 6.0,
+    "hbd": 0,
+    "hba": 2,
+    "tpsa": 12.47,
+    "rotatable_bonds": 8,
+    "lipinski_violations": 1,
+    "pubchem_url": "https://pubchem.ncbi.nlm.nih.gov/compound/2733526"
+  },
+  "errors": {
+    "docking": "NVIDIA_API_KEY is not set"
+  }
+}
