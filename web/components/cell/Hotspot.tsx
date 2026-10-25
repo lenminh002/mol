@@ -68,12 +68,14 @@ export function LabelProjector({
   squish,
   surface,
   offset,
+  showAt,
 }: {
   anchors: THREE.Vector3[];
   labels: RefObject<(HTMLElement | null)[]>;
   squish?: SquishState;
   surface?: boolean[];
   offset?: THREE.Vector3;
+  showAt?: number[]; // playback time at which each label appears
 }) {
   const { size } = useThree();
   const v = useRef(new THREE.Vector3());
@@ -84,6 +86,12 @@ export function LabelProjector({
     anchors.forEach((a, i) => {
       const el = labels.current?.[i];
       if (!el) return;
+      if (showAt && playback.t < (showAt[i] ?? 0)) {
+        el.style.visibility = "hidden";
+        el.style.pointerEvents = "none";
+        el.style.opacity = "0";
+        return;
+      }
       const onSurface = surface?.[i] ?? false;
       if (squish) deformPoint(a, squish, onSurface ? 1 : 0.18, onSurface ? 1 : 1.8, anchor.current);
       else anchor.current.copy(a);

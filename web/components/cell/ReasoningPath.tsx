@@ -101,7 +101,7 @@ export function ReasoningPath({ points, squish, surface, fixed }: Props) {
       />
       {points.map((p, i) => (
         <mesh key={i} ref={(mesh) => { nodeRefs.current[i] = mesh; }} position={p} raycast={() => {}}>
-          <sphereGeometry args={[0.06, 12, 12]} />
+          <sphereGeometry args={[0.09, 16, 16]} />
           <meshBasicMaterial color="#d97706" toneMapped />
         </mesh>
       ))}

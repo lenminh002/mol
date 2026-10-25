@@ -32,6 +32,7 @@ function homeCamera(width: number, height: number): typeof HOME_CAMERA {
   const scale = Math.max(1, FIT_RADIUS / Math.sin(halfWidth) / Math.hypot(x, y, z));
   return [x * scale, y * scale, z * scale, 0, 0, 0];
 }
+const DIRECTION_ARROW = { up: "↑", down: "↓", block: "⊘" } as const;
 const LABEL_OFFSET = new THREE.Vector3(0, 0.22, 0);
 
 function hotspotPosition(t: Target, index: number) {
@@ -140,8 +141,14 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
     if (pull <= 0) return;
     control.getTarget(scratch.target);
     if (scratch.target.lengthSq() < 1e-6) return;
-    scratch.target.multiplyScalar(1 - (1 - Math.exp(-dt * 6)) * pull);
-    void control.setTarget(scratch.target.x, scratch.target.y, scratch.target.z, false);
+    // Shift camera and pivot together so the view direction never rotates (no perspective swing).
+    const shift = (1 - Math.exp(-dt * 6)) * pull;
+    control.getPosition(scratch.point);
+    void control.setLookAt(
+      scratch.point.x - scratch.target.x * shift, scratch.point.y - scratch.target.y * shift, scratch.point.z - scratch.target.z * shift,
+      scratch.target.x * (1 - shift), scratch.target.y * (1 - shift), scratch.target.z * (1 - shift),
+      false,
+    );
   });
 
   useFrame((_, dt) => {
@@ -299,11 +306,12 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
 }
 
 export function CellScene() {
-  const { result, highlight, view, selectTarget } = useSim();
+  const { result, highlight, view, selectTarget, setHighlight } = useSim();
   const [membraneOpacity, setMembraneOpacity] = useState(100);
   const controls = useRef<CameraControls>(null);
   const container = useRef<HTMLDivElement>(null);
   const labels = useRef<(HTMLElement | null)[]>([]);
+  const effectLabels = useRef<(HTMLElement | null)[]>([]);
   const tooltip = useRef<HTMLDivElement>(null);
   const ruler = useRef<HTMLDivElement>(null);
   const navigation = useRef(0);
@@ -323,6 +331,24 @@ export function CellScene() {
       surface.push(effect.organelle === "membrane");
     }
     return { points, surface };
+  }, [result, targets]);
+
+  // Downstream path stops: one per organelle, labelled with its strongest effect.
+  const effectNodes = useMemo(() => {
+    if (!result) return [];
+    const timings = effectTimings(result.effects);
+    const best = new Map<CellLocation, number>();
+    result.effects.forEach((e, i) => {
+      const current = best.get(e.organelle);
+      if (current === undefined || e.magnitude * e.confidence > result.effects[current].magnitude * result.effects[current].confidence) best.set(e.organelle, i);
+    });
+    const targetLocation = targets[0]?.target.cell_location;
+    return [...best].filter(([organelle]) => organelle !== targetLocation).map(([organelle, index]) => ({
+      organelle,
+      effect: result.effects[index],
+      position: ORGANELLES[organelle].position.clone(),
+      onset: timings[index].onset,
+    })).sort((a, b) => a.onset - b.onset);
   }, [result, targets]);
 
   const waves = useMemo<WaveSpec[]>(() => {
@@ -411,6 +437,7 @@ export function CellScene() {
         <ContactShadows position={[0, -2.05, 0]} opacity={0.24} scale={12} blur={2.8} far={5} resolution={128} color="#786454" />
         {targets.map(({ target, position }) => <Hotspot key={target.name} targetName={target.name} position={position} surface={target.cell_location === "membrane"} squish={squish} blocked={anims[target.cell_location].blocked} flashAt={PHASE.bind} />)}
         <LabelProjector anchors={targets.map((t) => t.position)} labels={labels} squish={squish} surface={surfaces} offset={LABEL_OFFSET} />
+        <LabelProjector anchors={effectNodes.map((n) => n.position)} labels={effectLabels} squish={squish} surface={effectNodes.map((n) => n.organelle === "membrane")} offset={LABEL_OFFSET} showAt={effectNodes.map((n) => n.onset)} />
         {targets[0] && <DrugParticles target={targets[0].position} squish={squish} surface={surfaces[0]} blocked={anims[targets[0].target.cell_location].blocked} />}
         {result && <Needle squish={squish} />}
         {targets[0] && <SignalWaves from={targets[0].position} waves={waves} squish={squish} />}
@@ -423,6 +450,21 @@ export function CellScene() {
       {targets.map(({ target, position }, i) => (
         <button key={target.name} ref={(el) => { labels.current[i] = el; }} onClick={() => focus(deformPoint(position, squish, surfaces[i] ? 1 : 0.18, surfaces[i] ? 1 : 1.8), 0.3, target.name)} className={`absolute left-0 top-0 z-10 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${view === "cell" ? "" : "hidden"}`}>
           {target.name}{target.pdb_id && <span className="ml-1.5 font-mono text-[9px] text-muted-foreground">{target.pdb_id}</span>}
+        </button>
+      ))}
+      {effectNodes.map(({ organelle, effect, position }, i) => (
+        <button
+          key={organelle}
+          ref={(el) => { effectLabels.current[i] = el; }}
+          title={effect.explanation}
+          onClick={() => focus(deformPoint(position, squish, organelle === "membrane" ? 1 : 0.18, organelle === "membrane" ? 1 : 1.8), 0.5)}
+          onMouseEnter={() => setHighlight(organelle)}
+          onMouseLeave={() => setHighlight(null)}
+          className={`absolute left-0 top-0 z-10 max-w-56 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-left text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${view === "cell" ? "" : "hidden"}`}
+          style={{ borderLeft: `3px solid ${DIRECTION_TINT[effect.direction]}`, visibility: "hidden" }}
+        >
+          <span className="font-medium">{ORGANELLES[organelle].label} {DIRECTION_ARROW[effect.direction]}</span>
+          <span className="ml-1.5 block max-w-52 truncate text-[10px] text-muted-foreground">{effect.pathway}</span>
         </button>
       ))}
       <div className={`absolute bottom-4 right-4 z-10 w-44 rounded border bg-card/95 p-3 ${view === "cell" ? "" : "hidden"}`}>
