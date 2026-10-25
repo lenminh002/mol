@@ -21,8 +21,11 @@ interface SimState {
   view: View;
   selectedTarget: string | null;
   highlight: string | null;
+  prompt: string;
+  setPrompt: (prompt: string) => void;
   setInput: (input: SimulateRequest) => void;
   reset: () => void;
+  newChat: () => void;
   applyEvent: (event: SimEvent) => void;
   loadRun: (run: StoredRun) => void;
   setView: (view: View) => void;
@@ -41,6 +44,8 @@ export const useSim = create<SimState>((set) => ({
   view: "cell",
   selectedTarget: null,
   highlight: null,
+  prompt: "",
+  setPrompt: (prompt) => set({ prompt }),
   setInput: (input) => set({ input }),
   reset: () =>
     set({
@@ -53,6 +58,20 @@ export const useSim = create<SimState>((set) => ({
       view: "cell",
       selectedTarget: null,
       highlight: null,
+    }),
+  newChat: () =>
+    set({
+      input: {},
+      status: "idle",
+      statusMessage: "",
+      debate: [],
+      toolCalls: [],
+      result: null,
+      parsed: null,
+      view: "cell",
+      selectedTarget: null,
+      highlight: null,
+      prompt: "",
     }),
   applyEvent: (event) =>
     set((s) => {

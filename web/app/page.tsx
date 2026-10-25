@@ -1,3 +1,4 @@
+import { AskBar } from "@/components/AskBar";
 import { DrugPanel } from "@/components/DrugPanel";
 import { DebatePanel } from "@/components/DebatePanel";
 import { Viewport } from "@/components/Viewport";
@@ -12,11 +13,12 @@ export default function Home() {
         </div>
         <p className="text-[10px] leading-relaxed text-muted-foreground sm:text-xs">Research prototype — not medical advice</p>
       </header>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[300px_minmax(0,1fr)_380px]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[300px_minmax(0,1fr)_auto]">
         <DrugPanel />
         <Viewport />
         <DebatePanel />
       </div>
+      <AskBar />
     </main>
   );
 }

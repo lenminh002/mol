@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Loader2, RotateCw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronRight, Loader2, RotateCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReasoningGraph } from "@/components/ReasoningGraph";
@@ -88,6 +88,7 @@ export function DebatePanel() {
   const citations = new Map(result?.citations.map((c) => [c.id, c]) ?? []);
   const scroller = useRef<HTMLElement>(null);
   const running = status === "running";
+  const [open, setOpen] = useState(true);
 
   // Follow the debate as it streams; jump back to the verdict when it lands.
   useEffect(() => {
@@ -97,10 +98,39 @@ export function DebatePanel() {
     else if (running) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [debate.length, result, running]);
 
+  if (!open) {
+    return (
+      <aside className="flex min-w-0 rounded-md border bg-card lg:w-11 lg:flex-col lg:items-center">
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Expand reasoning"
+          aria-expanded={false}
+          className="flex w-full items-center gap-2 p-3 text-muted-foreground hover:text-foreground lg:flex-col lg:px-0"
+        >
+          <ChevronRight className="size-4 rotate-180" />
+          <span className="text-[10px] font-medium uppercase tracking-[0.14em] lg:[writing-mode:vertical-rl]">
+            Reasoning{running ? " · running…" : ""}
+          </span>
+        </button>
+      </aside>
+    );
+  }
+
   return (
-    <aside ref={scroller} className="scroll-thin flex min-w-0 flex-col gap-3 overflow-y-auto rounded-md border bg-card p-3.5">
+    <aside
+      ref={scroller}
+      className="scroll-thin flex min-w-0 flex-col gap-3 overflow-y-auto rounded-md border bg-card p-3.5 lg:w-[380px]"
+    >
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Reasoning</h2>
+        <button
+          onClick={() => setOpen(false)}
+          aria-label="Collapse reasoning"
+          aria-expanded
+          className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
+        >
+          <ChevronRight className="size-4" />
+          <h2 className="text-[10px] font-medium uppercase tracking-[0.14em]">Reasoning</h2>
+        </button>
         <div className="flex items-center gap-1.5">
           {result?.from_cache && input.preset && (
             <Button

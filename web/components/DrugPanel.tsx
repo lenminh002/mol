@@ -3,28 +3,11 @@
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useHistory } from "@/lib/history";
-import { useLoadRun, useRunSimulation } from "@/lib/run";
+import { useLoadRun, useNewChat, useRunSimulation } from "@/lib/run";
 import { API_URL } from "@/lib/sse";
 import { useSim } from "@/lib/store";
-
-const SUGGESTIONS = [
-  "How does atorvastatin lower cholesterol?",
-  "How does imatinib block BCR-ABL in leukemia cells?",
-  "How does aspirin reduce prostaglandin synthesis?",
-  "What does tamoxifen do to the estrogen receptor?",
-  "How does lisinopril lower blood pressure?",
-  "Why does aspirin irreversibly inhibit COX-1?",
-  "How do statins block the rate-limiting step of cholesterol synthesis?",
-  "How does imatinib bind the kinase domain of BCR-ABL?",
-];
-
-const randomSuggestion = (not?: string) => {
-  const pool = SUGGESTIONS.filter((s) => s !== not);
-  return pool[Math.floor(Math.random() * pool.length)];
-};
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{children}</h3>;
@@ -54,20 +37,18 @@ function useDrugSuggestions(query: string): string[] {
 }
 
 export function DrugPanel() {
-  const { status, parsed, input } = useSim();
+  const { status, parsed, input, setPrompt } = useSim();
   const run = useRunSimulation();
   const { items, refresh, remove, clear } = useHistory();
   const loadRun = useLoadRun();
-  const [prompt, setPrompt] = useState("");
-  const [suggestion, setSuggestion] = useState(SUGGESTIONS[0]);
+  const newChat = useNewChat();
   const [drug, setDrug] = useState("");
   const [target, setTarget] = useState("");
   const suggestions = useDrugSuggestions(drug);
   const listId = useId();
 
-  // Random pick and history load happen after mount so server and client markup match.
+  // History loads after mount so server and client markup match.
   useEffect(() => {
-    setSuggestion(randomSuggestion());
     refresh();
   }, [refresh]);
 
@@ -83,29 +64,16 @@ export function DrugPanel() {
 
   return (
     <aside className="scroll-thin flex min-w-0 flex-col gap-5 overflow-y-auto rounded-md border bg-card p-3.5">
-      <section className="flex flex-col gap-2">
-        <SectionLabel>Ask</SectionLabel>
-        <Textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Tab" && !e.shiftKey && !prompt.trim()) {
-              e.preventDefault();
-              setPrompt(suggestion);
-              setSuggestion(randomSuggestion(suggestion));
-              return;
-            }
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && prompt.trim() && !running) run({ prompt });
-          }}
-          placeholder={suggestion}
-          rows={3}
-          className="resize-none"
-        />
-        {!prompt.trim() && <p className="text-xs text-muted-foreground">Press Tab to autocomplete</p>}
-        <Button disabled={running || !prompt.trim()} onClick={() => run({ prompt })}>
-          {running ? "Simulating…" : "Simulate"}
-        </Button>
-      </section>
+      <Button
+        variant="outline"
+        onClick={() => {
+          newChat();
+          setDrug("");
+          setTarget("");
+        }}
+      >
+        <Plus className="size-4" /> New chat
+      </Button>
 
       <section className="flex flex-col gap-2">
         <SectionLabel>{fromPrompt ? "Understood as" : "Or set it up"}</SectionLabel>
@@ -148,7 +116,7 @@ export function DrugPanel() {
           )}
         </div>
         {items.length === 0 && (
-          <p className="text-xs text-muted-foreground">No history yet. Press Tab in the box above for an example.</p>
+          <p className="text-xs text-muted-foreground">No history yet. Press Tab in the box below for an example.</p>
         )}
         {items.map((h) => (
           <div

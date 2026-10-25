@@ -49,3 +49,13 @@ export function useLoadRun() {
     [loadRun, applyEvent],
   );
 }
+
+// Drop the current run (aborting it if still streaming) and go back to an empty simulator.
+export function useNewChat() {
+  const newChat = useSim((s) => s.newChat);
+  return useCallback(() => {
+    current?.abort();
+    current = null;
+    newChat();
+  }, [newChat]);
+}
