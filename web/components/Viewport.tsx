@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSim } from "@/lib/store";
-import { EffectLegend } from "./EffectLegend";
 import { EffectTimeline } from "./EffectTimeline";
 import { Narrator } from "./Narrator";
 
@@ -20,7 +19,6 @@ export function Viewport() {
     <section className="relative h-[70svh] min-h-[480px] min-w-0 overflow-hidden rounded-md bg-background lg:h-auto lg:min-h-0">
       <CellScene />
 
-      {result && view === "cell" && <EffectLegend />}
       {result && view === "cell" && <EffectTimeline />}
 
       {/* Stays mounted across views so narration keeps playing in the molecule view. */}

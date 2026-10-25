@@ -5,6 +5,7 @@ import { cn } from "cn";
 import { ChevronRight, Loader2, RotateCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EffectLegend } from "@/components/EffectLegend";
 import { ReasoningGraph } from "@/components/ReasoningGraph";
 import { TurnText } from "@/components/TurnText";
 import { useRunSimulation } from "@/lib/run";
@@ -170,6 +171,7 @@ export function DebatePanel() {
       {result && (
         <>
           <VerdictSummary result={result} />
+          <EffectLegend />
           <ReasoningGraph />
         </>
       )}

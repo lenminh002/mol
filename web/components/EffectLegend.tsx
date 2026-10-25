@@ -12,7 +12,7 @@ const STATUS_STYLE = {
   speculative: "border-border border-dotted opacity-70",
 } as const;
 
-// Effect list overlaid on the cell; hovering one highlights its organelle in 3D.
+// Effect list in the reasoning sidebar; hovering one highlights its organelle in 3D.
 export function EffectLegend() {
   const { result, setHighlight } = useSim();
   const { t } = usePlayback();
@@ -20,14 +20,14 @@ export function EffectLegend() {
   if (!result) return null;
 
   return (
-    <ul className="scroll-thin absolute bottom-28 left-4 z-10 flex max-h-[38%] max-w-[calc(100%-2rem)] flex-col gap-1.5 overflow-y-auto sm:bottom-20 sm:max-w-[min(22rem,calc(100%-13rem))] lg:bottom-28 lg:max-w-[calc(100%-2rem)] xl:bottom-20 xl:max-w-[min(22rem,calc(100%-13rem))]">
+    <ul className="flex flex-col gap-1.5">
       {result.effects.map((e, i) => (
         <li
           key={i}
           onMouseEnter={() => setHighlight(e.organelle)}
           onMouseLeave={() => setHighlight(null)}
           style={{ opacity: 0.4 + 0.6 * effectProgress(timings[i], t) }}
-          className={`relative cursor-default overflow-hidden rounded border bg-card/95 px-2.5 py-1.5 text-[11px] leading-relaxed ${STATUS_STYLE[e.status]}`}
+          className={`relative cursor-default overflow-hidden rounded border bg-transparent px-2.5 py-1.5 text-[11px] leading-relaxed ${STATUS_STYLE[e.status]}`}
         >
           <span className="mr-1">{DIRECTION[e.direction]}</span>
           <span className="font-medium">{e.pathway}</span>
