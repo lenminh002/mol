@@ -42,7 +42,7 @@ const forModel = (m: ChatMessage) => ({
 // Ask a follow-up about the result on screen. The whole thread goes with it; the answer may be a
 // proposal to re-simulate, which the user has to confirm (see useResolveProposal).
 export function useAskFollowup() {
-  const { addMessage, setChatPending } = useSim();
+  const { addMessage, appendToLast, setChatPending } = useSim();
 
   return useCallback(
     async (question: string) => {
@@ -54,18 +54,22 @@ export function useAskFollowup() {
       const user: ChatMessage = { role: "user", content: question };
       addMessage(user);
       setChatPending(true);
+      let started = false; // the assistant message exists once the first chunk arrives
       try {
         await streamChat(
           { result, messages: [...messages, user].map(forModel) },
           (e) => {
-            if (e.type === "answer") addMessage({ role: "assistant", content: e.text });
-            else if (e.type === "resimulate_proposal")
+            if (e.type === "delta") {
+              if (started) appendToLast(e.text);
+              else addMessage({ role: "assistant", content: e.text });
+              started = true;
+            } else if (e.type === "resimulate_proposal")
               addMessage({
                 role: "assistant",
                 content: `This needs a new simulation: ${e.reason}\n\nProposed question: ${e.prompt}`,
                 proposal: { prompt: e.prompt, reason: e.reason, status: "pending" },
               });
-            else addMessage({ role: "assistant", content: `Sorry, that failed: ${e.message}` });
+            else if (e.type === "error") addMessage({ role: "assistant", content: `Sorry, that failed: ${e.message}` });
           },
           ctrl.signal,
         );
@@ -75,7 +79,7 @@ export function useAskFollowup() {
         if (currentChat === ctrl) setChatPending(false);
       }
     },
-    [addMessage, setChatPending],
+    [addMessage, appendToLast, setChatPending],
   );
 }
 

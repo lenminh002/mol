@@ -101,7 +101,8 @@ export interface ChatMessage {
 }
 
 export type ChatEvent =
-  | { type: "answer"; text: string }
+  | { type: "delta"; text: string }
+  | { type: "done" }
   | { type: "resimulate_proposal"; prompt: string; reason: string }
   | { type: "error"; message: string };
 

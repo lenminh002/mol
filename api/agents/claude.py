@@ -2,7 +2,7 @@
 
 import os
 import re
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from typing import Literal
 
 import anthropic
@@ -241,10 +241,11 @@ PROPOSE_RESIMULATION = {
 }
 
 
-async def followup(result_json: str, messages: list[dict]) -> dict:
-    """Answer a question about a finished result. Returns {"type": "answer", "text"} or
-    {"type": "resimulate_proposal", "prompt", "reason"}; a new simulation is only ever proposed, never run."""
-    resp = await client().beta.messages.create(
+async def followup(result_json: str, messages: list[dict]) -> AsyncIterator[dict]:
+    """Answer a question about a finished result, streaming {"type": "delta", "text"} chunks, then either
+    {"type": "done"} or {"type": "resimulate_proposal", "prompt", "reason"}. A new simulation is only ever
+    proposed, never run."""
+    async with client().beta.messages.stream(
         model=MODEL,
         max_tokens=4000,
         system=f"{prompts.FOLLOWUP}\n\n<result>\n{result_json}\n</result>",
@@ -252,12 +253,16 @@ async def followup(result_json: str, messages: list[dict]) -> dict:
         tools=[PROPOSE_RESIMULATION],
         messages=messages,
         **FALLBACK,
-    )
-    _check(resp)
-    for block in resp.content:
+    ) as stream:
+        async for text in stream.text_stream:
+            yield {"type": "delta", "text": text}
+        final = await stream.get_final_message()
+    _check(final)
+    for block in final.content:
         if block.type == "tool_use" and block.name == "propose_resimulation":
-            return {"type": "resimulate_proposal", "prompt": block.input["prompt"], "reason": block.input["reason"]}
-    return {"type": "answer", "text": _text(resp)}
+            yield {"type": "resimulate_proposal", "prompt": block.input["prompt"], "reason": block.input["reason"]}
+            return
+    yield {"type": "done"}
 
 
 # --- judge ----------------------------------------------------------------------

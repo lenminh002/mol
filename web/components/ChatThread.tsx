@@ -61,7 +61,7 @@ export function ChatThread() {
           <TurnText key={i} text={m.content} citations={citations} />
         ),
       )}
-      {chatPending && (
+      {chatPending && messages.at(-1)?.role === "user" && (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-3.5 animate-spin" /> Replying…
         </p>

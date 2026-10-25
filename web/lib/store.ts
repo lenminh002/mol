@@ -29,6 +29,7 @@ interface SimState {
   drawerTab: "reasoning" | "chat";
   setDrawer: (open: boolean, tab?: "reasoning" | "chat") => void;
   addMessage: (message: ChatMessage) => void;
+  appendToLast: (text: string) => void;
   setProposalStatus: (index: number, status: "confirmed" | "declined") => void;
   setChatPending: (pending: boolean) => void;
   setPrompt: (prompt: string) => void;
@@ -65,6 +66,10 @@ export const useSim = create<SimState>((set) => ({
     set((s) => ({
       messages: [...s.messages, message],
       ...(message.role === "user" ? { drawerOpen: true, drawerTab: "chat" as const } : {}),
+    })),
+  appendToLast: (text) =>
+    set((s) => ({
+      messages: s.messages.map((m, i) => (i === s.messages.length - 1 ? { ...m, content: m.content + text } : m)),
     })),
   setProposalStatus: (index, status) =>
     set((s) => ({

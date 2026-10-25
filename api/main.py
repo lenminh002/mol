@@ -167,13 +167,12 @@ def history_clear() -> dict:
 
 async def chat_events(req: ChatRequest) -> AsyncIterator[dict]:
     try:
-        reply = await claude.followup(
+        async for chunk in claude.followup(
             req.result.model_dump_json(by_alias=True), [m.model_dump() for m in req.messages]
-        )
+        ):
+            yield event(chunk)
     except Exception as e:  # surface model/refusal errors to the thread instead of dropping the stream
         yield event({"type": "error", "message": str(e)})
-        return
-    yield event(reply)
 
 
 @app.post("/chat")
