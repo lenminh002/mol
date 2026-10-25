@@ -20,6 +20,14 @@ CURATED_FOCUS: dict[str, dict] = {
     "1O86": {"ligands": ["LPR"], "label": "lisinopril"},
 }
 
+# Holo PDB entry -> the same protein without the drug, to superpose and compare. IDs checked on RCSB;
+# targets without an entry (BCR-ABL kinase, COX-1) have no unbound structure in the PDB and are left out.
+APO_STRUCTURES: dict[str, dict] = {
+    "1HWK": {"pdb_id": "8S6B", "chain": "A", "label": "apo HMG-CoA reductase (cryo-EM, no inhibitor)"},
+    "1O86": {"pdb_id": "1O8A", "chain": "A", "label": "native ACE (no inhibitor)"},
+    "3ERT": {"pdb_id": "4Q13", "chain": "A", "label": "apo estrogen receptor ligand-binding domain (D538G mutant)"},
+}
+
 # Waters, ions, sugars, detergents and other crystallization additives — never the drug.
 NOT_DRUGS = {
     "HOH", "DOD", "NA", "CL", "K", "MG", "ZN", "CA", "MN", "FE", "CU", "CO", "NI", "CD", "IOD", "BR",
@@ -65,6 +73,15 @@ def _auto_ligand(atoms: list[dict]) -> list[str]:
 
 
 def binding_site(pdb_id: str) -> dict:
+    site = _binding_site(pdb_id)
+    apo = APO_STRUCTURES.get(site["pdb_id"])
+    if apo:
+        structure_path(apo["pdb_id"])  # fetch and cache so /files/structures/ can serve it
+        site["apo"] = {**apo, "structure_url": f"files/structures/{apo['pdb_id']}.pdb"}
+    return site
+
+
+def _binding_site(pdb_id: str) -> dict:
     pdb_id = pdb_id.upper()
     atoms = _atoms(structure_path(pdb_id).read_text())
     focus = dict(CURATED_FOCUS.get(pdb_id) or {})
