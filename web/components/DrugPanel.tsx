@@ -4,10 +4,27 @@ import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { X } from "lucide-react";
+import { useHistory } from "@/lib/history";
 import { useRunSimulation } from "@/lib/run";
 import { API_URL } from "@/lib/sse";
 import { useSim } from "@/lib/store";
-import type { Preset } from "@/lib/types";
+
+const SUGGESTIONS = [
+  "How does atorvastatin lower cholesterol?",
+  "How does imatinib block BCR-ABL in leukemia cells?",
+  "How does aspirin reduce prostaglandin synthesis?",
+  "What does tamoxifen do to the estrogen receptor?",
+  "How does lisinopril lower blood pressure?",
+  "Why does aspirin irreversibly inhibit COX-1?",
+  "How do statins block the rate-limiting step of cholesterol synthesis?",
+  "How does imatinib bind the kinase domain of BCR-ABL?",
+];
+
+const randomSuggestion = (not?: string) => {
+  const pool = SUGGESTIONS.filter((s) => s !== not);
+  return pool[Math.floor(Math.random() * pool.length)];
+};
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{children}</h3>;
@@ -39,19 +56,19 @@ function useDrugSuggestions(query: string): string[] {
 export function DrugPanel() {
   const { status, parsed, input } = useSim();
   const run = useRunSimulation();
-  const [presets, setPresets] = useState<Preset[]>([]);
+  const { items, hydrate, remove, clear } = useHistory();
   const [prompt, setPrompt] = useState("");
+  const [suggestion, setSuggestion] = useState(SUGGESTIONS[0]);
   const [drug, setDrug] = useState("");
   const [target, setTarget] = useState("");
   const suggestions = useDrugSuggestions(drug);
   const listId = useId();
 
+  // Random pick and history load happen after mount so server and client markup match.
   useEffect(() => {
-    fetch(`${API_URL}/presets`)
-      .then((r) => r.json())
-      .then(setPresets)
-      .catch(() => setPresets([]));
-  }, []);
+    setSuggestion(randomSuggestion());
+    hydrate();
+  }, [hydrate]);
 
   // Show what the backend understood a question as, so the user can correct it and re-run.
   useEffect(() => {
@@ -71,12 +88,19 @@ export function DrugPanel() {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={(e) => {
+            if (e.key === "Tab" && !e.shiftKey && !prompt.trim()) {
+              e.preventDefault();
+              setPrompt(suggestion);
+              setSuggestion(randomSuggestion(suggestion));
+              return;
+            }
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && prompt.trim() && !running) run({ prompt });
           }}
-          placeholder="How does atorvastatin lower cholesterol?"
+          placeholder={suggestion}
           rows={3}
           className="resize-none"
         />
+        {!prompt.trim() && <p className="text-xs text-muted-foreground">Press Tab to autocomplete</p>}
         <Button disabled={running || !prompt.trim()} onClick={() => run({ prompt })}>
           {running ? "Simulating…" : "Simulate"}
         </Button>
@@ -114,20 +138,40 @@ export function DrugPanel() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <SectionLabel>Demo presets</SectionLabel>
-        {presets.length === 0 && <p className="text-xs text-muted-foreground">API offline — start the backend.</p>}
-        {presets.map((p) => (
-          <button
-            key={p.id}
-            disabled={running}
-            onClick={() => run({ preset: p.id })}
-            className="rounded-lg border bg-background/40 p-2.5 text-left text-sm transition-colors hover:border-brand disabled:opacity-40"
+        <div className="flex items-center justify-between">
+          <SectionLabel>History</SectionLabel>
+          {items.length > 0 && (
+            <button onClick={clear} className="text-xs text-muted-foreground hover:text-foreground">
+              Clear all
+            </button>
+          )}
+        </div>
+        {items.length === 0 && (
+          <p className="text-xs text-muted-foreground">No history yet. Press Tab in the box above for an example.</p>
+        )}
+        {items.map((h) => (
+          <div
+            key={h.id}
+            className="group flex items-start gap-1 rounded-lg border bg-background/40 transition-colors hover:border-brand"
           >
-            <div className="font-medium">
-              {p.drug} <span className="text-muted-foreground">→ {p.target}</span>
-            </div>
-            <div className="text-xs text-muted-foreground">{p.blurb}</div>
-          </button>
+            <button
+              disabled={running}
+              onClick={() => {
+                if (h.req.prompt) setPrompt(h.req.prompt);
+                run(h.req);
+              }}
+              className="min-w-0 flex-1 p-2.5 text-left text-sm disabled:opacity-40"
+            >
+              <span className="line-clamp-2">{h.label}</span>
+            </button>
+            <button
+              aria-label="Delete from history"
+              onClick={() => remove(h.id)}
+              className="p-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
         ))}
       </section>
     </aside>

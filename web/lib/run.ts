@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useHistory } from "./history";
 import { streamSimulation } from "./sse";
 import { useSim } from "./store";
 import type { SimulateRequest } from "./types";
@@ -15,6 +16,7 @@ export function useRunSimulation() {
       const ctrl = new AbortController();
       current = ctrl;
       setInput(req);
+      useHistory.getState().add(req);
       reset();
       try {
         await streamSimulation(req, applyEvent, ctrl.signal);
