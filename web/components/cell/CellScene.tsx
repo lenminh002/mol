@@ -10,7 +10,7 @@ import type { CellLocation, Target } from "@/lib/types";
 import { DrugParticles } from "./DrugParticles";
 import { Hotspot, LabelProjector } from "./Hotspot";
 import { PHASE, effectTimings, timelineDuration } from "./effectTimeline";
-import { DIRECTION_TINT, DRUG_ENTRY, ORGANELLES, ORGANELLE_LOCATION, membraneRadiusAt, organelleAnims } from "./layout";
+import { DIRECTION_TINT, DRUG_ENTRY, TARGET_COLOR, ORGANELLES, ORGANELLE_LOCATION, membraneRadiusAt, organelleAnims } from "./layout";
 import { Needle } from "./Needle";
 import { resetPlayback } from "./playback";
 import { AccessoryOrganelles, EndoplasmicReticulum, Golgi, Membrane, Mitochondria, Nucleus, Ribosomes } from "./Organelles";
@@ -56,13 +56,14 @@ interface InteractionProps {
   squish: SquishState;
   active: boolean;
   focus: Focus;
+  flying: RefObject<boolean>;
   tooltip: RefObject<HTMLDivElement | null>;
   ruler: RefObject<HTMLDivElement | null>;
   onHover: (card: string | null) => void;
 }
 
 /** Native pointer capture supports the one-to-two-finger handoff without R3F's single-pointer limitation. */
-function SceneInteraction({ controls, squish, active, focus, tooltip, ruler, onHover }: InteractionProps) {
+function SceneInteraction({ controls, squish, active, focus, flying, tooltip, ruler, onHover }: InteractionProps) {
   const { camera, scene, gl, size } = useThree();
   const hoverAnchor = useRef<THREE.Vector3 | null>(null);
   const scratch = useMemo(() => ({ point: new THREE.Vector3(), target: new THREE.Vector3(), direction: new THREE.Vector3() }), []);
@@ -140,9 +141,10 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler, onH
 
   // Dolly-to-cursor drags the pivot toward whatever was zoomed on; ease it back to the cell
   // centre as the camera retreats so zooming out always recovers a centred overview.
+  // Skipped during programmatic flights: an instant setLookAt overwrites the flight's goal and stalls it.
   useFrame((_, dt) => {
     const control = controls.current;
-    if (!active || !control || squish.dragging) return;
+    if (!active || !control || squish.dragging || flying.current) return;
     const pull = THREE.MathUtils.smoothstep(control.distance, 3, 7);
     if (pull <= 0) return;
     control.getTarget(scratch.target);
@@ -164,8 +166,8 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler, onH
     const step = Math.min(dt, 0.05);
     const zoom = (held.has("w") ? 1 : 0) - (held.has("s") ? 1 : 0);
     const slide = (held.has("a") ? 1 : 0) - (held.has("d") ? 1 : 0);
-    if (zoom) void control.dolly(zoom * 20 * step, false);
-    if (slide) void control.truck(-slide * 0.8 * control.distance * step, 0, false);
+    if (zoom) void control.dolly(zoom * 0.6 * control.distance * step, false);
+    if (slide) void control.truck(-slide * 0.2 * control.distance * step, 0, false);
   });
 
   useEffect(() => {
@@ -339,6 +341,7 @@ export function CellScene() {
   const tooltip = useRef<HTMLDivElement>(null);
   const ruler = useRef<HTMLDivElement>(null);
   const navigation = useRef(0);
+  const flying = useRef(false);
   const squish = useMemo(createSquishState, []);
   const anims = useMemo(() => organelleAnims(result?.effects ?? [], result?.targets[0]?.cell_location), [result]);
   const targets = useMemo(() => {
@@ -418,12 +421,15 @@ export function CellScene() {
   }, [result]);
 
   const resetView = useCallback(() => {
-    navigation.current++;
+    const token = ++navigation.current;
     squish.dragging = false;
     squish.offset.setScalar(0);
     squish.velocity.setScalar(0);
     const box = container.current;
-    void controls.current?.setLookAt(...(box ? homeCamera(box.clientWidth, box.clientHeight) : HOME_CAMERA), true);
+    flying.current = true;
+    void controls.current?.setLookAt(...(box ? homeCamera(box.clientWidth, box.clientHeight) : HOME_CAMERA), true)
+      .catch(() => {})
+      .finally(() => { if (token === navigation.current) flying.current = false; });
   }, [squish]);
   useEffect(() => {
     navigation.current++;
@@ -452,11 +458,16 @@ export function CellScene() {
     const direction = control.getPosition(new THREE.Vector3()).sub(position).normalize();
     const distance = target ? 2.2 : Math.max(0.62, radius * 2.5);
     const eye = position.clone().addScaledVector(direction, distance);
+    flying.current = true;
     try {
       await control.setLookAt(eye.x, eye.y, eye.z, position.x, position.y, position.z, !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      if (token === navigation.current) flying.current = false;
       const hasStructure = useSim.getState().result?.targets.some((t) => t.name === target && t.pdb_id);
       if (target && hasStructure && token === navigation.current && useSim.getState().view === "cell") selectTarget(target);
-    } catch { /* A newer camera gesture can interrupt a flight. */ }
+    } catch {
+      /* A newer camera gesture can interrupt a flight. */
+      if (token === navigation.current) flying.current = false;
+    }
   }, [selectTarget]);
   const props = { anims, highlight, squish, membraneOpacity: membraneOpacity / 100, isolateOnHover };
 
@@ -482,8 +493,8 @@ export function CellScene() {
         <Ribosomes {...props} />
         <AccessoryOrganelles {...props} />
         <ContactShadows position={[0, -2.05, 0]} opacity={0.24} scale={12} blur={2.8} far={5} resolution={128} color="#786454" />
-        {targets.map(({ target, position, offTarget }) => <Hotspot key={target.name} targetName={target.name} offTarget={offTarget} position={position} surface={target.cell_location === "membrane"} squish={squish} tint={anims[target.cell_location].tint} flashAt={PHASE.bind} />)}
-        {targets[0] && <TargetCopies location={targets[0].target.cell_location} color={anims[targets[0].target.cell_location].tint ?? "#0f766e"} squish={squish} />}
+        {targets.map(({ target, position, offTarget }) => <Hotspot key={target.name} targetName={target.name} offTarget={offTarget} position={position} surface={target.cell_location === "membrane"} squish={squish} flashAt={PHASE.bind} />)}
+        {targets[0] && <TargetCopies location={targets[0].target.cell_location} color={TARGET_COLOR} squish={squish} />}
         <LabelProjector anchors={targets.map((t) => t.position)} labels={labels} squish={squish} surface={surfaces} offset={LABEL_OFFSET} />
         <LabelProjector anchors={effectNodes.map((n) => n.position)} labels={effectLabels} squish={squish} surface={effectNodes.map((n) => n.organelle === "membrane")} offset={LABEL_OFFSET} showAt={effectNodes.map((n) => n.onset)} />
         {targets[0] && <DrugParticles target={targets[0].position} squish={squish} surface={surfaces[0]} blocked={anims[targets[0].target.cell_location].blocked} />}
@@ -492,7 +503,7 @@ export function CellScene() {
         <TimeGate from={PHASE.cascadeStart}><ReasoningPath points={path.points} surface={path.surface} colors={pathColors} squish={squish} /></TimeGate>
         <PlaybackDriver />
         <CameraControls ref={controls} makeDefault minDistance={1} maxDistance={26} smoothTime={0.35} dollySpeed={5} dollyToCursor enabled={view === "cell"} touches={{ one: CameraControlsImpl.ACTION.TOUCH_ROTATE, two: CameraControlsImpl.ACTION.TOUCH_DOLLY_TRUCK, three: CameraControlsImpl.ACTION.TOUCH_TRUCK }} />
-        <SceneInteraction controls={controls} squish={squish} active={view === "cell"} focus={focus} tooltip={tooltip} ruler={ruler} onHover={setHoveredLabel} />
+        <SceneInteraction controls={controls} squish={squish} active={view === "cell"} focus={focus} flying={flying} tooltip={tooltip} ruler={ruler} onHover={setHoveredLabel} />
       </Canvas>
       <div ref={tooltip} role="status" className="pointer-events-none absolute left-0 top-0 z-20 whitespace-nowrap rounded border bg-card px-2.5 py-1.5 text-xs opacity-0 shadow-sm" />
       {targets.map(({ target, position, offTarget }, i) => (
@@ -517,7 +528,7 @@ export function CellScene() {
       ))}
       {(effectNodes.length > 0 || targets.length > 0) && (
         <ul aria-label="Colour key" className={`pointer-events-none absolute bottom-40 right-4 z-10 w-48 space-y-1 rounded border bg-card/95 p-3 text-[10px] text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>
-          <li className="flex items-center gap-2"><span className="size-2 rounded-full" style={{ background: "#0f766e" }} />Main target (click)</li>
+          <li className="flex items-center gap-2"><span className="size-2 rounded-full" style={{ background: TARGET_COLOR }} />Main target (click)</li>
           <li className="flex items-center gap-2"><span className="size-1 rounded-full bg-muted-foreground" />Small dots: more copies</li>
           {targets.some((t) => t.offTarget) && <li className="flex items-center gap-2" title="The drug also binds this protein, though it isn't the intended target. This can cause side effects."><span className="size-1.5 rounded-full" style={{ background: "#7c8a86" }} />Off-target (unintended, weaker)</li>}
           {(["up", "down", "block"] as const).map((d) => (

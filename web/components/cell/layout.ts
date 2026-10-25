@@ -114,6 +114,9 @@ const NEUTRAL: OrganelleAnim = { direction: null, onset: 0, ramp: 1, peak: 0, pu
 
 export const DIRECTION_TINT: Record<Direction, string> = { up: "#368d69", down: "#5a87bd", block: "#c55e54" };
 
+// The main target's pin, copy dots and legend dot; kept apart from the effect tints above.
+export const TARGET_COLOR = "#7c5cbf";
+
 // Collapse effects[] into one animation per organelle. Stronger, more confident effects win.
 export function organelleAnims(effects: Effect[], targetLocation?: CellLocation): Record<CellLocation, OrganelleAnim> {
   const out = Object.fromEntries(

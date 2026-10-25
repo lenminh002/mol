@@ -16,7 +16,7 @@ related: ["[[off-target-pins]]", "[[effect-timeline]]"]
 The target pin was red or teal only (red whenever its organelle had a block effect), and one pin read as "one molecule". Now the pin takes its organelle effect's direction colour, and ~14 small dots of the same colour appear in the target's organelle after binding.
 
 ## Done
-- `Hotspot` colour = organelle effect tint (teal if none); `TargetCopies.tsx` instanced dots per region, follow squish, scrubbable
+- `Hotspot` colour = fixed purple `TARGET_COLOR` (was organelle effect tint; it clashed with the green "Increased" tint); `TargetCopies.tsx` instanced dots per region, follow squish, scrubbable
 - Brief glow on the target organelle at bind (`OrganelleAnim.target`)
 - Legend row "Small dots: more copies"
 

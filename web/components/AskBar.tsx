@@ -88,11 +88,11 @@ export function AskBar() {
     if (!canSend) return;
     recRef.current?.stop();
     const text = prompt.trim();
+    setPrompt("");
     if (followUp) {
-      setPrompt("");
       void ask(text);
     } else {
-      run({ prompt });
+      run({ prompt: text });
     }
   };
 

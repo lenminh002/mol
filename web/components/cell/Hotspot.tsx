@@ -4,12 +4,12 @@ import { useRef, type RefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { smoothstep } from "./effectTimeline";
+import { TARGET_COLOR } from "./layout";
 import { playback } from "./playback";
 import { deformPoint, type SquishState } from "./squish";
 
 interface Props {
   position: THREE.Vector3;
-  tint?: string | null; // colour of the effect on the target's organelle; teal when it has none
   onSelect?: () => void;
   targetName?: string;
   squish?: SquishState;
@@ -19,12 +19,12 @@ interface Props {
 }
 
 // A binding-site pin. Its owner can route pointer events through targetName.
-export function Hotspot({ position, tint, onSelect, targetName, squish, surface = false, offTarget = false, flashAt }: Props) {
+export function Hotspot({ position, onSelect, targetName, squish, surface = false, offTarget = false, flashAt }: Props) {
   const group = useRef<THREE.Group>(null);
   const ring = useRef<THREE.Mesh>(null);
   const core = useRef<THREE.MeshStandardMaterial>(null);
   const halo = useRef<THREE.MeshBasicMaterial>(null);
-  const color = offTarget ? "#7c8a86" : tint ?? "#0f766e";
+  const color = offTarget ? "#7c8a86" : TARGET_COLOR;
 
   useFrame(({ clock, camera }) => {
     if (group.current) {
