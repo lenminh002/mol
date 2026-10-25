@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowDown } from "lucide-react";
 import { useSim } from "@/lib/store";
 import type { CellLocation, Citation, PathHop } from "@/lib/types";
 
@@ -38,35 +37,36 @@ function Node({ label, drugNames }: { label: string; drugNames: string[] }) {
   const region = regionOf(label);
   const l = label.toLowerCase();
   const isDrug = drugNames.some((d) => l.includes(d) || (l.length > 4 && d.includes(l)));
-  const tone = isDrug
-    ? "border-amber-600/35 bg-amber-50/60 text-amber-700"
+  const tone = isDrug ? "text-amber-700" : region ? "cursor-pointer text-brand" : "text-foreground";
+  const dot = isDrug
+    ? "border-amber-700 bg-amber-700"
     : region
-      ? "border-brand/60 text-brand cursor-pointer"
-      : "border-border text-foreground";
+      ? "border-brand bg-brand"
+      : "border-muted-foreground bg-background";
   return (
-    <span
+    <div
       onMouseEnter={() => region && setHighlight(region)}
       onMouseLeave={() => region && setHighlight(null)}
       title={region ? "Highlight in the cell" : undefined}
-      className={`w-fit max-w-full rounded border bg-background/60 px-2 py-1 text-xs ${tone}`}
+      className={`relative py-1 text-sm leading-snug ${tone}`}
     >
+      <span className={`absolute -left-5 top-[0.65rem] size-[7px] rounded-full border ${dot}`} />
       {label}
-    </span>
+    </div>
   );
 }
 
 function Edge({ hop, citation }: { hop: PathHop; citation?: Citation }) {
   return (
-    <div className="flex items-center gap-1.5 py-0.5 pl-3 text-[11px] text-muted-foreground">
-      <ArrowDown className="size-3 shrink-0" />
-      <span className="italic">{hop.relation}</span>
+    <div className="py-0.5 text-[11.5px] italic leading-snug text-muted-foreground">
+      {hop.relation}
       {citation && (
         <a
           href={citation.url}
           target="_blank"
           rel="noreferrer"
           title={citation.title}
-          className="rounded border px-1 py-px text-[10px] hover:border-brand hover:text-brand"
+          className="ml-1.5 border-b border-dotted border-muted-foreground text-[10.5px] not-italic hover:border-brand hover:text-brand"
         >
           {citation.pmid ? `PMID ${citation.pmid}` : citation.id.split(":")[0]}
         </a>
@@ -75,7 +75,7 @@ function Edge({ hop, citation }: { hop: PathHop; citation?: Citation }) {
   );
 }
 
-// The judge's causal chain from the drug to its effects, as a small flow diagram.
+// The judge's causal chain from the drug to its effects, as a vertical timeline.
 export function ReasoningGraph() {
   const { result } = useSim();
   if (!result || result.reasoning_path.length === 0) return null;
@@ -83,13 +83,12 @@ export function ReasoningGraph() {
   const drugNames = [result.drug.name, result.reasoning_path[0].from].map((n) => n.toLowerCase());
 
   return (
-    <div className="rounded border p-3">
-      <div className="mb-2 text-xs font-medium">
-        Reasoning path <span className="font-normal text-muted-foreground">· hover a cell region to see it</span>
-      </div>
-      <div className="flex flex-col gap-3">
+    <section>
+      <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Reasoning path</h3>
+      <p className="mt-1 text-xs italic text-muted-foreground">Hover a cell region to see it.</p>
+      <div className="mt-3 flex flex-col gap-4">
         {chains(result.reasoning_path).map((chain, i) => (
-          <div key={i} className="flex flex-col">
+          <div key={i} className="relative flex flex-col pl-5 before:absolute before:bottom-3 before:left-[3px] before:top-3 before:w-px before:bg-input">
             <Node label={chain[0].from} drugNames={drugNames} />
             {chain.map((hop, j) => (
               <div key={j} className="flex flex-col">
@@ -100,6 +99,6 @@ export function ReasoningGraph() {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

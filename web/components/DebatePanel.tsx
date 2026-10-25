@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { cn } from "cn";
 import { ChevronRight, Loader2, RotateCw } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EffectLegend } from "@/components/EffectLegend";
 import { ReasoningGraph } from "@/components/ReasoningGraph";
@@ -11,18 +10,12 @@ import { ChatThread } from "@/components/ChatThread";
 import { TurnText } from "@/components/TurnText";
 import { usePersistChat, useRunSimulation } from "@/lib/run";
 import { useSim } from "@/lib/store";
-import type { AgentName, EffectStatus, SimulationResult } from "@/lib/types";
+import type { AgentName, SimulationResult } from "@/lib/types";
 
 const AGENTS: Record<AgentName, { label: string; model: string; color: string }> = {
   proposer: { label: "Pharmacologist", model: "Claude", color: "text-claude border-claude/40" },
   skeptic: { label: "Skeptic", model: "Gemini", color: "text-gemini border-gemini/40" },
   judge: { label: "Judge", model: "Claude", color: "text-brand border-brand/40" },
-};
-
-const STATUS_STYLE: Record<EffectStatus, string> = {
-  agreed: "border-brand/50 text-brand",
-  disputed: "border-destructive/60 text-destructive",
-  speculative: "border-border text-muted-foreground",
 };
 
 // Plain-English description of a tool call: what the agent did, and what it did it to.
@@ -58,29 +51,34 @@ function describeToolCall(tool: string, args: Record<string, unknown>): { verb: 
   }
 }
 
-// How the panel resolved: counts per status and the mean confidence of the effects.
+const NUMBER_WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
+
+// How the panel resolved: a one-line verdict, then mean confidence and source count.
 function VerdictSummary({ result }: { result: SimulationResult }) {
-  const counts = result.effects.reduce<Partial<Record<EffectStatus, number>>>(
-    (acc, e) => ({ ...acc, [e.status]: (acc[e.status] ?? 0) + 1 }),
-    {},
-  );
-  const mean = result.effects.length
-    ? result.effects.reduce((sum, e) => sum + e.confidence, 0) / result.effects.length
-    : 0;
+  const total = result.effects.length;
+  const agreed = result.effects.filter((e) => e.status === "agreed").length;
+  const disputed = result.effects.filter((e) => e.status === "disputed").length;
+  const speculative = result.effects.filter((e) => e.status === "speculative").length;
+  const mean = total ? result.effects.reduce((sum, e) => sum + e.confidence, 0) / total : 0;
+  const count = NUMBER_WORDS[total] ?? String(total);
+  const rest = [disputed && `${disputed} disputed`, speculative && `${speculative} speculative`].filter(Boolean);
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {(["agreed", "disputed", "speculative"] as const).map(
-        (s) =>
-          counts[s] && (
-            <Badge key={s} variant="outline" className={STATUS_STYLE[s]}>
-              {counts[s]} {s}
-            </Badge>
-          ),
-      )}
-      <Badge variant="outline" title="Mean confidence across effects">
-        confidence {Math.round(mean * 100)}%
-      </Badge>
-      <Badge variant="outline">{result.citations.length} sources</Badge>
+    <div>
+      <h2 className="font-heading text-[26px] leading-[1.15] tracking-tight">
+        {count} {total === 1 ? "effect" : "effects"},{" "}
+        {agreed === total ? (
+          <em className="text-brand">all agreed</em>
+        ) : (
+          <>
+            <em className="text-brand">{agreed} agreed</em>
+            {rest.length > 0 && <span className="text-muted-foreground">, {rest.join(", ")}</span>}
+          </>
+        )}
+      </h2>
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        <span title="Mean confidence across effects">{Math.round(mean * 100)}% confidence</span> · {result.citations.length}{" "}
+        sources
+      </p>
     </div>
   );
 }
@@ -133,7 +131,7 @@ export function DebatePanel() {
         ref={scroller}
         inert={!open}
         className={cn(
-          "scroll-thin flex h-full min-w-0 flex-col gap-3 overflow-y-auto p-3.5 transition-opacity duration-200",
+          "scroll-thin flex h-full min-w-0 flex-col gap-6 overflow-y-auto p-3.5 transition-opacity duration-200",
           width,
           !open && "pointer-events-none opacity-0 max-lg:hidden",
         )}
@@ -175,7 +173,12 @@ export function DebatePanel() {
               <RotateCw className="size-3" /> Run live
             </Button>
           )}
-          {!chat && result && <Badge variant="outline">{result.from_cache ? "saved run" : "live"}</Badge>}
+          {!chat && result && (
+            <span className={cn("flex items-center gap-1.5 text-[11px]", result.from_cache ? "text-muted-foreground" : "text-brand")}>
+              <span className="size-1.5 rounded-full bg-current" />
+              {result.from_cache ? "saved run" : "live"}
+            </span>
+          )}
         </div>
       </div>
 
@@ -227,7 +230,7 @@ export function DebatePanel() {
       {debate.map((turn, i) => {
         const a = AGENTS[turn.agent];
         return (
-          <div key={i} className={`rounded border bg-background/40 p-3 ${a.color}`}>
+          <div key={i} className={`border-l pl-3 ${a.color}`}>
             <div className="mb-1 text-xs font-medium">
               {a.label}{" "}
               <span className="text-muted-foreground">
@@ -240,8 +243,8 @@ export function DebatePanel() {
       })}
 
       {result && result.caveats.length > 0 && (
-        <div className="rounded border p-3 text-xs leading-relaxed text-muted-foreground">
-          <div className="mb-1 font-medium text-foreground">Caveats</div>
+        <div className="text-xs leading-relaxed text-muted-foreground">
+          <h3 className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.14em]">Caveats</h3>
           <ul className="list-disc pl-4">
             {result.caveats.map((c, i) => (
               <li key={i}>{c}</li>

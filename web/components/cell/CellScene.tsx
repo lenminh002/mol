@@ -77,7 +77,7 @@ function SceneInteraction({ controls, squish, active, focus, flying, tooltip, ru
       positions.setXYZ(i, point.x, point.y, point.z);
     }
     geometry.computeBoundingSphere();
-    return new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+    return new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ side: THREE.FrontSide }));
   }, []);
   const rest = useMemo(() => new Float32Array(proxy.geometry.attributes.position.array), [proxy]);
 
@@ -151,6 +151,7 @@ function SceneInteraction({ controls, squish, active, focus, flying, tooltip, ru
     if (scratch.target.lengthSq() < 1e-6) return;
     // Shift camera and pivot together so the view direction never rotates (no perspective swing).
     const shift = (1 - Math.exp(-dt * 6)) * pull;
+    if (scratch.target.length() * shift < 1e-4) return;
     control.getPosition(scratch.point);
     void control.setLookAt(
       scratch.point.x - scratch.target.x * shift, scratch.point.y - scratch.target.y * shift, scratch.point.z - scratch.target.z * shift,
@@ -330,6 +331,21 @@ function SceneInteraction({ controls, squish, active, focus, flying, tooltip, ru
   return null;
 }
 
+/** Detail layers start hidden, so their shaders would otherwise compile on the first zoom-in and stall a frame. */
+function PrewarmShaders() {
+  const { gl, scene, camera } = useThree();
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const hidden: THREE.Object3D[] = [];
+      scene.traverse((object) => { if (object.userData.detail && !object.visible) { object.visible = true; hidden.push(object); } });
+      gl.compile(scene, camera);
+      hidden.forEach((object) => { object.visible = false; });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [gl, scene, camera]);
+  return null;
+}
+
 export function CellScene() {
   const { result, highlight, isolateOnHover, showLabels, view, selectTarget, setHighlight } = useSim();
   const [membraneOpacity, setMembraneOpacity] = useState(100);
@@ -477,7 +493,7 @@ export function CellScene() {
         <h2 className="font-heading text-4xl leading-none tracking-tight sm:text-5xl">Human cell<span className="text-brand">.</span></h2>
         <p className="mt-2 max-w-[260px] text-[10px] leading-relaxed text-muted-foreground">Illustrative human cell · Approximate scale; organelle counts reduced for clarity.</p>
       </div>
-      <Canvas camera={{ position: HOME_CAMERA.slice(0, 3) as [number, number, number], fov: FOV, near: 0.2, far: 100 }} dpr={[1, 1.75]} gl={{ antialias: true }}>
+      <Canvas camera={{ position: HOME_CAMERA.slice(0, 3) as [number, number, number], fov: FOV, near: 0.2, far: 100 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
         <color attach="background" args={["#efece6"]} />
         <hemisphereLight args={["#fffaf0", "#b3a395", 2.1]} />
         <directionalLight position={[4, 8, 5]} intensity={3.2} color="#fff8ed" />
@@ -502,6 +518,7 @@ export function CellScene() {
         {targets[0] && <SignalWaves from={targets[0].position} waves={waves} squish={squish} />}
         <TimeGate from={PHASE.cascadeStart}><ReasoningPath points={path.points} surface={path.surface} colors={pathColors} squish={squish} /></TimeGate>
         <PlaybackDriver />
+        <PrewarmShaders />
         <CameraControls ref={controls} makeDefault minDistance={1} maxDistance={26} smoothTime={0.35} dollySpeed={5} dollyToCursor enabled={view === "cell"} touches={{ one: CameraControlsImpl.ACTION.TOUCH_ROTATE, two: CameraControlsImpl.ACTION.TOUCH_DOLLY_TRUCK, three: CameraControlsImpl.ACTION.TOUCH_TRUCK }} />
         <SceneInteraction controls={controls} squish={squish} active={view === "cell"} focus={focus} flying={flying} tooltip={tooltip} ruler={ruler} onHover={setHoveredLabel} />
       </Canvas>
