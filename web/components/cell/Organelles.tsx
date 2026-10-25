@@ -52,14 +52,49 @@ function useBreathe(props: AnatomyProps, location: CellLocation) {
   return group;
 }
 
-function InstanceCloud({ matrices, geometry, material, detail = false, renderOrder = 0 }: { matrices: THREE.Matrix4[]; geometry: THREE.BufferGeometry; material: THREE.MeshPhysicalMaterial; detail?: boolean; renderOrder?: number }) {
+// Brownian-style wander: two incommensurate sines per axis with a per-seed phase,
+// so neighbours never move in unison. Writes into `out` to avoid per-frame allocation.
+function driftOffset(out: THREE.Vector3, seed: number, t: number, amp: number) {
+  const s = amp / 1.5;
+  return out.set(
+    (Math.sin(t * 0.37 + seed * 1.71) + 0.5 * Math.sin(t * 0.93 + seed * 3.13)) * s,
+    (Math.sin(t * 0.29 + seed * 2.39) + 0.5 * Math.sin(t * 0.81 + seed * 1.07)) * s * 0.7,
+    (Math.sin(t * 0.43 + seed * 0.97) + 0.5 * Math.sin(t * 1.07 + seed * 2.71)) * s,
+  );
+}
+
+function usePrefersReducedMotion() {
+  return useMemo(() => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
+}
+
+interface Drift { amp: number; speed?: number; group?: number; skipFirst?: boolean }
+
+function InstanceCloud({ matrices, geometry, material, detail = false, renderOrder = 0, drift }: { matrices: THREE.Matrix4[]; geometry: THREE.BufferGeometry; material: THREE.MeshPhysicalMaterial; detail?: boolean; renderOrder?: number; drift?: Drift }) {
   const ref = useRef<THREE.InstancedMesh>(null);
+  const reduced = usePrefersReducedMotion();
+  const scratch = useMemo(() => ({ matrix: new THREE.Matrix4(), offset: new THREE.Vector3() }), []);
   useLayoutEffect(() => {
     if (!ref.current) return;
     matrices.forEach((matrix, index) => ref.current!.setMatrixAt(index, matrix));
     ref.current.instanceMatrix.needsUpdate = true;
     ref.current.computeBoundingSphere();
   }, [matrices]);
+  useFrame(({ clock }) => {
+    const mesh = ref.current;
+    if (!drift || reduced || !mesh || mesh.parent?.visible === false) return;
+    const t = clock.elapsedTime * (drift.speed ?? 1);
+    const group = drift.group ?? 1;
+    matrices.forEach((matrix, index) => {
+      const seed = Math.floor(index / group);
+      scratch.matrix.copy(matrix);
+      if (!(drift.skipFirst && seed === 0)) {
+        driftOffset(scratch.offset, seed, t, drift.amp);
+        scratch.matrix.elements[12] += scratch.offset.x; scratch.matrix.elements[13] += scratch.offset.y; scratch.matrix.elements[14] += scratch.offset.z;
+      }
+      mesh.setMatrixAt(index, scratch.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  });
   return <instancedMesh ref={ref} args={[geometry, material, matrices.length]} userData={{ detail }} renderOrder={renderOrder} frustumCulled={false} />;
 }
 
@@ -139,6 +174,8 @@ export function Nucleus(props: AnatomyProps) {
   </group>;
 }
 
+const MITO_DRIFT = 0.03;
+
 export function Mitochondria(props: AnatomyProps) {
   const ref = useRef<THREE.InstancedMesh>(null);
   const detailGroup = useRef<THREE.Group>(null);
@@ -163,7 +200,8 @@ export function Mitochondria(props: AnatomyProps) {
     return { shells, plates };
   }, []);
   const sorting = useMemo(() => MITOCHONDRIA.map((placement, index) => ({ index, position: placement.position, distance: 0 })), []);
-  const scratch = useMemo(() => ({ matrix: new THREE.Matrix4(), scale: new THREE.Vector3(), logicalIds: MITOCHONDRIA.map((_, index) => index) }), []);
+  const scratch = useMemo(() => ({ matrix: new THREE.Matrix4(), scale: new THREE.Vector3(), offset: new THREE.Vector3(), logicalIds: MITOCHONDRIA.map((_, index) => index) }), []);
+  const reduced = usePrefersReducedMotion();
   useFrame(({ camera, clock }) => {
     if (!ref.current) return;
     let nearest = Infinity;
@@ -171,14 +209,22 @@ export function Mitochondria(props: AnatomyProps) {
     sorting.sort((a, b) => b.distance - a.distance);
     const animation = props.anims.mitochondria;
     scratch.scale.setScalar(1 + (animation.pulse ? Math.sin(clock.elapsedTime * animation.pulse * Math.PI) * 0.014 : 0));
-    sorting.forEach((entry, index) => { ref.current!.setMatrixAt(index, scratch.matrix.copy(shells[entry.index]).scale(scratch.scale)); scratch.logicalIds[index] = entry.index; });
+    sorting.forEach((entry, index) => {
+      scratch.matrix.copy(shells[entry.index]).scale(scratch.scale);
+      // Index 0 is the hotspot anchor, so it stays put; the rest wander slightly.
+      if (!reduced && entry.index !== 0) {
+        driftOffset(scratch.offset, entry.index, clock.elapsedTime, MITO_DRIFT);
+        scratch.matrix.elements[12] += scratch.offset.x; scratch.matrix.elements[13] += scratch.offset.y; scratch.matrix.elements[14] += scratch.offset.z;
+      }
+      ref.current!.setMatrixAt(index, scratch.matrix); scratch.logicalIds[index] = entry.index;
+    });
     ref.current.instanceMatrix.needsUpdate = true;
     ref.current.userData.logicalIds = scratch.logicalIds;
     if (detailGroup.current) detailGroup.current.visible = nearest < 2.3 * 2.3;
   });
   return <group userData={{ organelleLabel: "Mitochondrion", focusRadius: 0.3 }}>
     <instancedMesh ref={ref} args={[geometry, outer, MITOCHONDRIA.length]} renderOrder={2} frustumCulled={false} userData={{ organelleLabel: "Mitochondrion", focusRadius: 0.3 }} />
-    <group ref={detailGroup} visible={false} userData={{ detail: true }}><InstanceCloud matrices={plates} geometry={plateGeometry} material={cristae} detail renderOrder={1} /></group>
+    <group ref={detailGroup} visible={false} userData={{ detail: true }}><InstanceCloud matrices={plates} geometry={plateGeometry} material={cristae} detail renderOrder={1} drift={{ amp: MITO_DRIFT, group: 6, skipFirst: true }} /></group>
   </group>;
 }
 
@@ -323,7 +369,7 @@ export function AccessoryOrganelles(props: AnatomyProps) {
   return <group>
     {bodies.map(({ position, radius, peroxisome }, index) => <group key={index} position={position} userData={{ organelleLabel: peroxisome ? "Peroxisome" : "Lysosome", focusRadius: 0.25 }}><mesh material={peroxisome ? peroxisomeMaterial : lysosomeMaterial} renderOrder={2}><sphereGeometry args={[radius, 18, 12]} /></mesh></group>)}
     <group userData={{ detail: true }}><InstanceCloud matrices={granules} geometry={granuleGeometry} material={granuleMaterial} detail renderOrder={1} /></group>
-    <group userData={{ organelleLabel: "Transport vesicle", focusRadius: 0.2 }}><InstanceCloud matrices={vesicles} geometry={vesicleGeometry} material={vesicleMaterial} /></group>
+    <group userData={{ organelleLabel: "Transport vesicle", focusRadius: 0.2 }}><InstanceCloud matrices={vesicles} geometry={vesicleGeometry} material={vesicleMaterial} drift={{ amp: 0.06, speed: 1.4 }} /></group>
     <group position={CENTROSOME_POSITION} userData={{ organelleLabel: "Centrosome", focusRadius: 0.4 }}>
       {[0, 1].map((axis) => <group key={axis} position={[axis * 0.12, 0, 0]} rotation={axis ? [0, 0, Math.PI / 2] : [0, 0, 0]}>{Array.from({ length: 9 }, (_, index) => {
         const angle = (index / 9) * Math.PI * 2;
