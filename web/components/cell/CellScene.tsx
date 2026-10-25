@@ -58,10 +58,11 @@ interface InteractionProps {
   focus: Focus;
   tooltip: RefObject<HTMLDivElement | null>;
   ruler: RefObject<HTMLDivElement | null>;
+  onHover: (card: string | null) => void;
 }
 
 /** Native pointer capture supports the one-to-two-finger handoff without R3F's single-pointer limitation. */
-function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: InteractionProps) {
+function SceneInteraction({ controls, squish, active, focus, tooltip, ruler, onHover }: InteractionProps) {
   const { camera, scene, gl, size } = useThree();
   const hoverAnchor = useRef<THREE.Vector3 | null>(null);
   const scratch = useMemo(() => ({ point: new THREE.Vector3(), target: new THREE.Vector3(), direction: new THREE.Vector3() }), []);
@@ -228,6 +229,7 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
     };
     const hideHover = () => {
       hoverAnchor.current = null;
+      onHover(null);
       if (tooltip.current) tooltip.current.style.opacity = "0";
       canvas.style.cursor = "grab";
     };
@@ -278,6 +280,8 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
         const key = ORGANELLE_LOCATION[hit.label] ?? null;
         if (useSim.getState().highlight !== key) useSim.getState().setHighlight(key);
         canvasHighlight = key !== null;
+        const targetName = hit.owner.userData.targetName;
+        onHover(targetName ? `t:${targetName}` : key ? `e:${key}` : null);
       } else {
         hideHover();
         clearCanvasHighlight();
@@ -318,7 +322,7 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
       canvas.removeEventListener("lostpointercapture", finish);
       canvas.removeEventListener("pointerleave", leave);
     };
-  }, [active, camera, controls, focus, gl, proxy, scene, squish, tooltip]);
+  }, [active, camera, controls, focus, gl, onHover, proxy, scene, squish, tooltip]);
 
   useEffect(() => () => { proxy.geometry.dispose(); proxy.material.dispose(); }, [proxy]);
   return null;
@@ -327,6 +331,7 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
 export function CellScene() {
   const { result, highlight, isolateOnHover, showLabels, view, selectTarget, setHighlight } = useSim();
   const [membraneOpacity, setMembraneOpacity] = useState(100);
+  const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
   const controls = useRef<CameraControls>(null);
   const container = useRef<HTMLDivElement>(null);
   const labels = useRef<(HTMLElement | null)[]>([]);
@@ -398,6 +403,13 @@ export function CellScene() {
     });
     return out;
   }, [result, targets]);
+
+  // Only focus a card that exists, so hovering an organelle without one doesn't fade every card.
+  const focusedCard = useMemo(() => {
+    if (!hoveredLabel) return null;
+    const cards = [...targets.map(({ target }) => `t:${target.name}`), ...effectNodes.map(({ organelle }) => `e:${organelle}`)];
+    return cards.includes(hoveredLabel) ? hoveredLabel : null;
+  }, [hoveredLabel, targets, effectNodes]);
 
   // Every new result (or loaded run) restarts the injection; reduced motion jumps to the end state.
   useEffect(() => {
@@ -480,12 +492,12 @@ export function CellScene() {
         <TimeGate from={PHASE.cascadeStart}><ReasoningPath points={path.points} surface={path.surface} colors={pathColors} squish={squish} /></TimeGate>
         <PlaybackDriver />
         <CameraControls ref={controls} makeDefault minDistance={1} maxDistance={26} smoothTime={0.35} dollySpeed={5} dollyToCursor enabled={view === "cell"} touches={{ one: CameraControlsImpl.ACTION.TOUCH_ROTATE, two: CameraControlsImpl.ACTION.TOUCH_DOLLY_TRUCK, three: CameraControlsImpl.ACTION.TOUCH_TRUCK }} />
-        <SceneInteraction controls={controls} squish={squish} active={view === "cell"} focus={focus} tooltip={tooltip} ruler={ruler} />
+        <SceneInteraction controls={controls} squish={squish} active={view === "cell"} focus={focus} tooltip={tooltip} ruler={ruler} onHover={setHoveredLabel} />
       </Canvas>
       <div ref={tooltip} role="status" className="pointer-events-none absolute left-0 top-0 z-20 whitespace-nowrap rounded border bg-card px-2.5 py-1.5 text-xs opacity-0 shadow-sm" />
       {targets.map(({ target, position, offTarget }, i) => (
-        <button key={target.name} ref={(el) => { labels.current[i] = el; }} onMouseEnter={() => setHighlight(target.cell_location)} onMouseLeave={() => setHighlight(null)} onClick={() => focus(deformPoint(position, squish, surfaces[i] ? 1 : 0.18, surfaces[i] ? 1 : 1.8), 0.3, target.name)} className={`absolute left-0 top-0 z-10 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${offTarget ? "border-dashed text-muted-foreground" : ""} ${view === "cell" && showLabels ? "" : "hidden"}`}>
-          {offTarget && <span className="mr-1.5 text-[9px] uppercase tracking-wide">off-target</span>}{target.name}{target.pdb_id && <span className="ml-1.5 font-mono text-[9px] text-muted-foreground">{target.pdb_id}</span>}
+        <button key={target.name} ref={(el) => { labels.current[i] = el; }} title={offTarget ? "Off-target: the drug also binds this protein, though it isn't the intended target. This can cause side effects." : undefined} onMouseEnter={() => { setHoveredLabel(`t:${target.name}`); setHighlight(target.cell_location); }} onMouseLeave={() => { setHoveredLabel(null); setHighlight(null); }} onClick={() => focus(deformPoint(position, squish, surfaces[i] ? 1 : 0.18, surfaces[i] ? 1 : 1.8), 0.3, target.name)} className={`absolute left-0 top-0 z-10 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-[11px] shadow-sm transition-[filter] hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${offTarget ? "border-dashed text-muted-foreground" : ""} ${focusedCard === `t:${target.name}` ? "!z-30" : focusedCard ? "[filter:opacity(0.07)]" : ""} ${view === "cell" && showLabels ? "" : "hidden"}`}>
+          {offTarget && focusedCard === `t:${target.name}` && <span className="mr-1.5 text-[9px] uppercase tracking-wide">off-target</span>}{target.name}{target.pdb_id && focusedCard === `t:${target.name}` && <span className="ml-1.5 font-mono text-[9px] text-muted-foreground">{target.pdb_id}</span>}
         </button>
       ))}
       {effectNodes.map(({ organelle, effect, position }, i) => (
@@ -494,9 +506,9 @@ export function CellScene() {
           ref={(el) => { effectLabels.current[i] = el; }}
           title={effect.explanation}
           onClick={() => focus(deformPoint(position, squish, organelle === "membrane" ? 1 : 0.18, organelle === "membrane" ? 1 : 1.8), 0.5)}
-          onMouseEnter={() => setHighlight(organelle)}
-          onMouseLeave={() => setHighlight(null)}
-          className={`absolute left-0 top-0 z-10 max-w-56 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-left text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${view === "cell" && showLabels ? "" : "hidden"}`}
+          onMouseEnter={() => { setHoveredLabel(`e:${organelle}`); setHighlight(organelle); }}
+          onMouseLeave={() => { setHoveredLabel(null); setHighlight(null); }}
+          className={`absolute left-0 top-0 z-10 max-w-56 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-left text-[11px] shadow-sm transition-[filter] hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${focusedCard === `e:${organelle}` ? "!z-30" : focusedCard ? "[filter:opacity(0.07)]" : ""} ${view === "cell" && showLabels ? "" : "hidden"}`}
           style={{ borderLeft: `3px solid ${DIRECTION_TINT[effect.direction]}`, visibility: "hidden" }}
         >
           <span className="font-medium">{ORGANELLES[organelle].label} {DIRECTION_ARROW[effect.direction]}</span>
@@ -507,7 +519,7 @@ export function CellScene() {
         <ul aria-label="Colour key" className={`pointer-events-none absolute bottom-40 right-4 z-10 w-48 space-y-1 rounded border bg-card/95 p-3 text-[10px] text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>
           <li className="flex items-center gap-2"><span className="size-2 rounded-full" style={{ background: "#0f766e" }} />Main target (click)</li>
           <li className="flex items-center gap-2"><span className="size-1 rounded-full bg-muted-foreground" />Small dots: more copies</li>
-          {targets.some((t) => t.offTarget) && <li className="flex items-center gap-2"><span className="size-1.5 rounded-full" style={{ background: "#7c8a86" }} />Off-target (weaker)</li>}
+          {targets.some((t) => t.offTarget) && <li className="flex items-center gap-2" title="The drug also binds this protein, though it isn't the intended target. This can cause side effects."><span className="size-1.5 rounded-full" style={{ background: "#7c8a86" }} />Off-target (unintended, weaker)</li>}
           {(["up", "down", "block"] as const).map((d) => (
             <li key={d} className="flex items-center gap-2">
               <span className="size-2 rounded-full" style={{ background: DIRECTION_TINT[d] }} />
