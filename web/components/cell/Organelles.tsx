@@ -244,6 +244,8 @@ export function Mitochondria(props: AnatomyProps) {
       ref.current!.setMatrixAt(index, scratch.matrix); scratch.logicalIds[index] = entry.index;
     });
     ref.current.instanceMatrix.needsUpdate = true;
+    // Raycasting rejects against this sphere first; it must follow the per-frame drift or clicks miss.
+    ref.current.computeBoundingSphere();
     ref.current.userData.logicalIds = scratch.logicalIds;
     if (detailGroup.current) detailGroup.current.visible = nearest < 2.3 * 2.3;
   });

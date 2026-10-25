@@ -220,8 +220,11 @@ function SceneInteraction({ controls, squish, active, focus, flying, tooltip, ru
       const meshes: THREE.Object3D[] = [];
       scene.traverse((object) => { if (object instanceof THREE.Mesh && metadata(object)) meshes.push(object); });
       const hits = raycaster.intersectObjects(meshes, false);
-      // Pins remain reachable through transparent organelles and the membrane.
-      const hit = hits.find((h) => metadata(h.object)?.userData.hotspot) ?? hits[0];
+      // Pins remain reachable through transparent organelles and the membrane, but not through
+      // a mitochondrion in front of them: its solid capsule should take the click.
+      const pin = hits.find((h) => metadata(h.object)?.userData.hotspot);
+      const blocker = pin && hits.find((h) => metadata(h.object)?.userData.organelleLabel === "Mitochondrion" && h.distance < pin.distance);
+      const hit = blocker ?? pin ?? hits[0];
       if (!hit) return null;
       const owner = metadata(hit.object);
       if (!owner) return null;
