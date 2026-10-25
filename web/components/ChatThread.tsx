@@ -24,9 +24,11 @@ export function ChatThread() {
 
   if (messages.length === 0 && !chatPending) {
     return (
-      <p className="text-sm text-muted-foreground">
-        {result ? "Ask a follow-up about this result below." : "Run a simulation, then ask follow-up questions here."}
-      </p>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-muted-foreground">
+          {result ? "Ask a follow-up about this result below." : "Run a simulation, then ask follow-up questions here."}
+        </p>
+      </div>
     );
   }
 
@@ -73,7 +75,7 @@ export function ChatThread() {
       )}
       {chatPending && messages.at(-1)?.role === "user" && (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-3.5 animate-spin" /> Replying…
+          <Loader2 className="size-3.5 animate-spin" /> {status === "running" ? "Simulating…" : "Replying…"}
         </p>
       )}
     </div>

@@ -30,7 +30,7 @@ export function Viewport() {
       {/* Stays mounted across views so narration keeps playing in the molecule view. */}
       {result && (
         <div
-          className={view === "cell" ? "pointer-events-none absolute left-4 right-4 top-[9.25rem] z-10 max-w-sm py-2" : "hidden"}
+          className={view === "cell" ? "pointer-events-none absolute left-4 right-4 top-[9.25rem] z-10 max-w-[17rem] py-2" : "hidden"}
           title={result.summary}
         >
           <div className="flex min-h-8 items-center gap-2 text-sm font-medium">

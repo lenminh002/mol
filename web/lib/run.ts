@@ -7,6 +7,49 @@ import type { ChatMessage, SimEvent, SimulateRequest, StoredRun } from "./types"
 // One simulation at a time: starting a new one aborts the stream of the previous one.
 let current: AbortController | null = null;
 
+let currentChat: AbortController | null = null;
+
+// What the model sees for a message: a proposal carries the user's answer to it.
+const forModel = (m: ChatMessage) => ({
+  role: m.role,
+  content: m.proposal ? `${m.content}\n[user ${m.proposal.status === "pending" ? "has not answered yet" : m.proposal.status}]` : m.content,
+});
+
+// Answer the thread's last user message about the result on screen. The whole thread goes with it; the
+// answer may be a proposal to re-simulate, which the user has to confirm (see useResolveProposal).
+async function answer() {
+  const { result, messages, addMessage, appendToLast, setChatPending } = useSim.getState();
+  if (!result) return setChatPending(false);
+  currentChat?.abort();
+  const ctrl = new AbortController();
+  currentChat = ctrl;
+  setChatPending(true);
+  let started = false; // the assistant message exists once the first chunk arrives
+  try {
+    await streamChat(
+      { result, messages: messages.map(forModel) },
+      (e) => {
+        if (e.type === "delta") {
+          if (started) appendToLast(e.text);
+          else addMessage({ role: "assistant", content: e.text });
+          started = true;
+        } else if (e.type === "resimulate_proposal")
+          addMessage({
+            role: "assistant",
+            content: `This needs a new simulation: ${e.reason}\n\nProposed question: ${e.prompt}`,
+            proposal: { prompt: e.prompt, reason: e.reason, status: "pending" },
+          });
+        else if (e.type === "error") addMessage({ role: "assistant", content: `Sorry, that failed: ${e.message}` });
+      },
+      ctrl.signal,
+    );
+  } catch (e) {
+    if ((e as Error).name !== "AbortError") addMessage({ role: "assistant", content: `Sorry, that failed: ${String(e)}` });
+  } finally {
+    if (currentChat === ctrl) setChatPending(false);
+  }
+}
+
 export function useRunSimulation() {
   const { reset, applyEvent, setInput } = useSim();
 
@@ -15,8 +58,14 @@ export function useRunSimulation() {
       current?.abort();
       const ctrl = new AbortController();
       current = ctrl;
+      // A fresh first question is an ordinary chat message: it opens the thread and is answered once the result exists.
+      const asChat = !!req.prompt?.trim() && useSim.getState().messages.length === 0;
       setInput(req);
       reset();
+      if (asChat) {
+        useSim.getState().addMessage({ role: "user", content: req.prompt!.trim() });
+        useSim.getState().setChatPending(true);
+      }
       const onEvent = (e: SimEvent) => {
         applyEvent(e);
         if (e.type === "saved") void useHistory.getState().refresh();
@@ -26,60 +75,23 @@ export function useRunSimulation() {
       } catch (e) {
         if ((e as Error).name !== "AbortError") applyEvent({ type: "error", message: String(e) });
       }
+      if (asChat && current === ctrl && !ctrl.signal.aborted) await answer();
     },
     [reset, applyEvent, setInput],
   );
 }
 
-let currentChat: AbortController | null = null;
-
-// What the model sees for a message: a proposal carries the user's answer to it.
-const forModel = (m: ChatMessage) => ({
-  role: m.role,
-  content: m.proposal ? `${m.content}\n[user ${m.proposal.status === "pending" ? "has not answered yet" : m.proposal.status}]` : m.content,
-});
-
-// Ask a follow-up about the result on screen. The whole thread goes with it; the answer may be a
-// proposal to re-simulate, which the user has to confirm (see useResolveProposal).
+// Ask a follow-up about the result on screen.
 export function useAskFollowup() {
-  const { addMessage, appendToLast, setChatPending } = useSim();
+  const addMessage = useSim((s) => s.addMessage);
 
   return useCallback(
     async (question: string) => {
-      const { result, messages } = useSim.getState();
-      if (!result) return;
-      currentChat?.abort();
-      const ctrl = new AbortController();
-      currentChat = ctrl;
-      const user: ChatMessage = { role: "user", content: question };
-      addMessage(user);
-      setChatPending(true);
-      let started = false; // the assistant message exists once the first chunk arrives
-      try {
-        await streamChat(
-          { result, messages: [...messages, user].map(forModel) },
-          (e) => {
-            if (e.type === "delta") {
-              if (started) appendToLast(e.text);
-              else addMessage({ role: "assistant", content: e.text });
-              started = true;
-            } else if (e.type === "resimulate_proposal")
-              addMessage({
-                role: "assistant",
-                content: `This needs a new simulation: ${e.reason}\n\nProposed question: ${e.prompt}`,
-                proposal: { prompt: e.prompt, reason: e.reason, status: "pending" },
-              });
-            else if (e.type === "error") addMessage({ role: "assistant", content: `Sorry, that failed: ${e.message}` });
-          },
-          ctrl.signal,
-        );
-      } catch (e) {
-        if ((e as Error).name !== "AbortError") addMessage({ role: "assistant", content: `Sorry, that failed: ${String(e)}` });
-      } finally {
-        if (currentChat === ctrl) setChatPending(false);
-      }
+      if (!useSim.getState().result) return;
+      addMessage({ role: "user", content: question });
+      await answer();
     },
-    [addMessage, appendToLast, setChatPending],
+    [addMessage],
   );
 }
 

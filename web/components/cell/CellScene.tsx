@@ -125,9 +125,15 @@ function SceneInteraction({ controls, squish, active, focus, flying, tooltip, ru
       if (!active || event.ctrlKey || event.metaKey || event.altKey) return;
       if (target instanceof Element && target.closest("input, textarea, select, [contenteditable]")) return;
       held.add(event.key.toLowerCase());
+      // Shift turns the left-drag into a pan; camera-controls has no modifier mapping of its own.
+      if (event.key === "Shift" && controls.current && !squish.dragging) controls.current.mouseButtons.left = CameraControlsImpl.ACTION.TRUCK;
     };
-    const up = (event: KeyboardEvent) => { held.delete(event.key.toLowerCase()); };
-    const clear = () => held.clear();
+    const panOff = () => { if (controls.current && !squish.dragging) controls.current.mouseButtons.left = CameraControlsImpl.ACTION.ROTATE; };
+    const up = (event: KeyboardEvent) => {
+      held.delete(event.key.toLowerCase());
+      if (event.key === "Shift") panOff();
+    };
+    const clear = () => { held.clear(); panOff(); };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     window.addEventListener("blur", clear);
@@ -137,7 +143,7 @@ function SceneInteraction({ controls, squish, active, focus, flying, tooltip, ru
       window.removeEventListener("keyup", up);
       window.removeEventListener("blur", clear);
     };
-  }, [active]);
+  }, [active, controls, squish]);
 
   // Dolly-to-cursor drags the pivot toward whatever was zoomed on; ease it back to the cell
   // centre as the camera retreats so zooming out always recovers a centred overview.
@@ -167,8 +173,11 @@ function SceneInteraction({ controls, squish, active, focus, flying, tooltip, ru
     const step = Math.min(dt, 0.05);
     const zoom = (held.has("w") ? 1 : 0) - (held.has("s") ? 1 : 0);
     const slide = (held.has("a") ? 1 : 0) - (held.has("d") ? 1 : 0);
+    const lift = (held.has("q") ? 1 : 0) - (held.has("e") ? 1 : 0);
     if (zoom) void control.dolly(zoom * 0.6 * control.distance * step, false);
-    if (slide) void control.truck(-slide * 0.2 * control.distance * step, 0, false);
+    // Floor the pan speed so it stays usable when zoomed inside the cell.
+    const pan = 0.2 * Math.max(control.distance, 3) * step;
+    if (slide || lift) void control.truck(-slide * pan, -lift * pan, false);
   });
 
   useEffect(() => {
@@ -237,7 +246,7 @@ function SceneInteraction({ controls, squish, active, focus, flying, tooltip, ru
       canvas.style.cursor = "grab";
     };
     const down = (event: PointerEvent) => {
-      if (!active || (event.pointerType === "mouse" && event.button !== 0)) return;
+      if (!active || event.shiftKey || (event.pointerType === "mouse" && event.button !== 0)) return;
       pointers.add(event.pointerId);
       if (pointers.size > 1) {
         squish.dragging = false;
@@ -544,7 +553,7 @@ export function CellScene() {
         </button>
       ))}
       {(effectNodes.length > 0 || targets.length > 0) && (
-        <ul aria-label="Colour key" className={`pointer-events-none absolute bottom-40 right-4 z-10 w-48 space-y-1 rounded border bg-card/95 p-3 text-[10px] text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>
+        <ul aria-label="Colour key" className={`pointer-events-none absolute bottom-4 left-4 z-10 w-48 space-y-1 p-3 text-[10px] text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>
           <li className="flex items-center gap-2"><span className="size-2 rounded-full" style={{ background: TARGET_COLOR }} />Main target (click)</li>
           <li className="flex items-center gap-2"><span className="size-1 rounded-full bg-muted-foreground" />Small dots: more copies</li>
           {targets.some((t) => t.offTarget) && <li className="flex items-center gap-2" title="The drug also binds this protein, though it isn't the intended target. This can cause side effects."><span className="size-1.5 rounded-full" style={{ background: "#7c8a86" }} />Off-target (unintended, weaker)</li>}
@@ -557,7 +566,7 @@ export function CellScene() {
           ))}
         </ul>
       )}
-      <div className={`absolute bottom-4 right-4 z-10 w-44 rounded border bg-card/95 p-3 ${view === "cell" ? "" : "hidden"}`}>
+      <div className={`absolute bottom-4 right-4 z-10 w-44 p-3 ${view === "cell" ? "" : "hidden"}`}>
         <div className="mb-2 flex items-center justify-between gap-2">
           <label htmlFor="membrane-opacity" className="text-[11px] font-medium">Membrane</label>
           <button onClick={resetView} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-brand" aria-label="Reset cell view" title="Reset view"><RotateCcw size={13} /></button>
@@ -568,7 +577,7 @@ export function CellScene() {
         </div>
         <div ref={ruler} className="mt-3 border-t pt-3 text-[9px] text-muted-foreground" aria-label="Approximate scale at focus depth"><div className="h-1.5 border-x border-b border-foreground" style={{ width: 80 }} /><span className="mt-1 block font-mono">≈ 5 µm</span></div>
       </div>
-      <p className={`pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-center max-w-[calc(100%-26rem)] text-[9px] leading-relaxed text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>Drag cell to squish<br />Drag background to orbit · Scroll or W/S to zoom · A/D to move · Esc to reset</p>
+      <p className={`pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-center max-w-[calc(100%-26rem)] text-[9px] leading-relaxed text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>Drag cell to squish<br />Drag background to orbit · Shift-drag to pan · Scroll or W/S to zoom · A/D/Q/E to move · Esc to reset</p>
     </div>
   );
 }

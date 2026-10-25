@@ -94,7 +94,7 @@ export function DebatePanel() {
   const scroller = useRef<HTMLDivElement>(null);
   const running = status === "running";
   const chat = tab === "chat";
-  const width = chat ? "lg:w-[440px]" : "lg:w-[380px]"; // answers read better a little wider
+  const width = "lg:w-[380px]";
 
   // Follow the debate as it streams; jump back to the verdict when it lands.
   useEffect(() => {
@@ -128,15 +128,14 @@ export function DebatePanel() {
         </span>
       </button>
       <div
-        ref={scroller}
         inert={!open}
         className={cn(
-          "scroll-thin flex h-full min-w-0 flex-col gap-6 overflow-y-auto p-3.5 transition-opacity duration-200",
+          "flex h-full min-w-0 flex-col transition-opacity duration-200",
           width,
           !open && "pointer-events-none opacity-0 max-lg:hidden",
         )}
       >
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex shrink-0 items-center justify-between gap-2 px-3.5 pb-2 pt-3.5">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setDrawer(false)}
@@ -182,6 +181,17 @@ export function DebatePanel() {
         </div>
       </div>
 
+      <div
+        ref={scroller}
+        className="scroll-thin min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3.5 pb-3.5 pt-2"
+      >
+      <div
+        key={tab}
+        className={cn(
+          "flex flex-col gap-6 animate-in fade-in duration-300 ease-out",
+          chat ? "slide-in-from-left-6" : "slide-in-from-right-6",
+        )}
+      >
       {chat && <ChatThread />}
 
       {!chat && status === "idle" && (
@@ -253,6 +263,8 @@ export function DebatePanel() {
         </div>
       )}
       </>)}
+      </div>
+      </div>
       </div>
     </aside>
   );
