@@ -51,9 +51,13 @@ def save_run(req: dict, result: dict, tool_calls: list[dict], parsed: dict | Non
     run_id = uuid.uuid4().hex
     label = label_for(req)
     with closing(_connect()) as conn, conn:
+        # The replaced run's follow-up thread moves to the new one instead of being lost with it.
+        old = conn.execute(
+            "SELECT chat_json FROM runs WHERE label = ? AND chat_json IS NOT NULL ORDER BY ts DESC LIMIT 1", (label,)
+        ).fetchone()
         conn.execute("DELETE FROM runs WHERE label = ?", (label,))
         conn.execute(
-            "INSERT INTO runs (id, label, req_json, result_json, tool_calls_json, parsed_json, ts) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO runs (id, label, req_json, result_json, tool_calls_json, parsed_json, ts, chat_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 run_id,
                 label,
@@ -62,6 +66,7 @@ def save_run(req: dict, result: dict, tool_calls: list[dict], parsed: dict | Non
                 json.dumps(tool_calls),
                 json.dumps(parsed) if parsed else None,
                 int(time.time() * 1000),
+                old["chat_json"] if old else None,
             ),
         )
         conn.execute(

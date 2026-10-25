@@ -90,7 +90,7 @@ export type SimEvent =
   | { type: "tool_call"; agent: AgentName; tool: string; args: Record<string, unknown> }
   | { type: "turn"; turn: DebateTurn }
   | { type: "result"; result: SimulationResult }
-  | { type: "saved"; id: string }
+  | { type: "saved"; id: string; chat?: ChatMessage[] }
   | { type: "error"; message: string };
 
 // Follow-up chat (POST /chat). A proposal is only a request: nothing re-simulates until the user confirms.

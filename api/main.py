@@ -126,7 +126,8 @@ async def simulate_events(req: SimulateRequest) -> AsyncIterator[dict]:
             tool_calls.append({"agent": e["agent"], "tool": e["tool"], "args": e["args"]})
         elif e["type"] == "result":
             run_id = await asyncio.to_thread(db.save_run, req.model_dump(), e["result"], tool_calls, parsed)
-            yield event({"type": "saved", "id": run_id})
+            saved = await asyncio.to_thread(db.get_run, run_id)
+            yield event({"type": "saved", "id": run_id, "chat": saved["chat"] if saved else []})
 
 
 @app.get("/history")

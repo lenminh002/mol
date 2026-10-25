@@ -37,3 +37,15 @@ def test_chat_is_stored_with_the_run(tmp_path, monkeypatch):
     thread = [{"role": "user", "content": "why?"}, {"role": "assistant", "content": "because"}]
     db.save_chat(run_id, thread)
     assert db.get_run(run_id)["chat"] == thread
+
+
+def test_rerun_keeps_the_replaced_runs_chat(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "runs.db")
+    db.init()
+    req = {"drug": "aspirin"}
+    first = db.save_run(req, {}, [], None)
+    thread = [{"role": "user", "content": "why?"}]
+    db.save_chat(first, thread)
+    second = db.save_run(req, {}, [], None)
+    assert db.get_run(second)["chat"] == thread
+    assert db.get_run(db.save_run({"drug": "ibuprofen"}, {}, [], None))["chat"] == []

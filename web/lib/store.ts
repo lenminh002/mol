@@ -121,7 +121,7 @@ export const useSim = create<SimState>((set) => ({
         case "result":
           return { result: event.result, status: "done", statusMessage: "" };
         case "saved":
-          return { runId: event.id };
+          return { runId: event.id, messages: s.messages.length ? s.messages : (event.chat ?? []) };
         case "error":
           return { status: "error", statusMessage: event.message };
       }

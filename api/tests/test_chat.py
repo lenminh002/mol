@@ -80,3 +80,16 @@ def test_chat_events_forwards_chunks(monkeypatch):
     req = ChatRequest(result=RESULT, messages=[{"role": "user", "content": "hi"}])
     events = [json.loads(e["data"]) for e in collect(main.chat_events(req))]
     assert events == [{"type": "delta", "text": "ok"}, {"type": "done"}]
+
+
+def test_followup_receives_restored_thread(monkeypatch):
+    seen = {}
+
+    def client():
+        c = fake_client(["ok"], [], seen)
+        return c
+
+    monkeypatch.setattr(claude, "client", client)
+    thread = [{"role": "user", "content": "why?"}, {"role": "assistant", "content": "because"}, {"role": "user", "content": "and?"}]
+    collect(claude.followup("{}", thread))
+    assert seen["messages"] == thread
