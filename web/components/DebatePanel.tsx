@@ -22,6 +22,39 @@ const STATUS_STYLE: Record<EffectStatus, string> = {
   speculative: "border-border text-muted-foreground",
 };
 
+// Plain-English description of a tool call: what the agent did, and what it did it to.
+function describeToolCall(tool: string, args: Record<string, unknown>): { verb: string; detail: string } {
+  const s = (v: unknown) => (v == null ? "" : String(v));
+  switch (tool) {
+    case "drug_info":
+      return { verb: "looked up drug info for", detail: s(args.name) };
+    case "target_info":
+      return { verb: "looked up target info for", detail: s(args.name) };
+    case "dock":
+      return { verb: "ran docking against", detail: s(args.target_name) };
+    case "search_literature":
+      return { verb: "searched the literature for", detail: s(args.query) };
+    case "web_search":
+      return { verb: "searched the web for", detail: s(args.query) };
+    case "knowledge_graph":
+      return { verb: "explored the knowledge graph for", detail: s(args.name) };
+    case "mechanism_path":
+      return {
+        verb: "traced the mechanism path to",
+        detail: [`${s(args.region)} from ${s(args.drug)}`, args.via ? `via ${s(args.via)}` : ""]
+          .filter(Boolean)
+          .join(" "),
+      };
+    case "off_targets":
+      return { verb: "checked off-target effects of", detail: s(args.drug) };
+    default:
+      return {
+        verb: `called ${tool}`,
+        detail: Object.values(args).filter((v) => v != null).map(String).join(", "),
+      };
+  }
+}
+
 // How the panel resolved: counts per status and the mean confidence of the effects.
 function VerdictSummary({ result }: { result: SimulationResult }) {
   const counts = result.effects.reduce<Partial<Record<EffectStatus, number>>>(
@@ -105,13 +138,22 @@ export function DebatePanel() {
 
       {toolCalls.length > 0 && (
         <details className="text-xs text-muted-foreground">
-          <summary className="cursor-pointer">{toolCalls.length} tool calls</summary>
-          <ul className="mt-1 flex flex-col gap-0.5 font-mono">
-            {toolCalls.map((t, i) => (
-              <li key={i} className="truncate">
-                {t.agent}: {t.tool}({Object.values(t.args).filter((v) => v != null).map(String).join(", ")})
-              </li>
-            ))}
+          <summary className="cursor-pointer">
+            {toolCalls.length} tool {toolCalls.length === 1 ? "call" : "calls"}
+          </summary>
+          <ul className="mt-1.5 flex flex-col gap-1.5">
+            {toolCalls.map((t, i) => {
+              const a = AGENTS[t.agent as AgentName];
+              const { verb, detail } = describeToolCall(t.tool, t.args);
+              const raw = `${t.tool}(${Object.values(t.args).filter((v) => v != null).map(String).join(", ")})`;
+              return (
+                <li key={i} className="line-clamp-2" title={raw}>
+                  <span className={`font-medium ${a?.color.split(" ")[0] ?? ""}`}>{a?.label ?? t.agent}</span>{" "}
+                  {verb}
+                  {detail && <> <span className="text-foreground/80">“{detail}”</span></>}
+                </li>
+              );
+            })}
           </ul>
         </details>
       )}
