@@ -78,8 +78,22 @@ def save_run(req: dict, result: dict, tool_calls: list[dict], parsed: dict | Non
 
 def list_runs() -> list[dict]:
     with closing(_connect()) as conn:
-        rows = conn.execute("SELECT id, label, req_json, ts FROM runs ORDER BY ts DESC").fetchall()
-    return [{"id": r["id"], "label": r["label"], "req": json.loads(r["req_json"]), "ts": r["ts"]} for r in rows]
+        rows = conn.execute("SELECT id, label, req_json, ts, chat_json FROM runs ORDER BY ts DESC").fetchall()
+    out = []
+    for r in rows:
+        chat = json.loads(r["chat_json"]) if r["chat_json"] else []
+        preview = " ".join(str(chat[-1].get("content", "")).split())[:80] if chat else ""
+        out.append(
+            {
+                "id": r["id"],
+                "label": r["label"],
+                "req": json.loads(r["req_json"]),
+                "ts": r["ts"],
+                "chat_count": len(chat),
+                "chat_preview": preview,
+            }
+        )
+    return out
 
 
 def get_run(run_id: str) -> dict | None:

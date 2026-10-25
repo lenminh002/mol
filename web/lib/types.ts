@@ -112,6 +112,8 @@ export interface HistoryItem {
   req: SimulateRequest;
   label: string;
   ts: number;
+  chat_count?: number;
+  chat_preview?: string;
 }
 
 export interface StoredRun extends HistoryItem {

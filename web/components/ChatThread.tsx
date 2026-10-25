@@ -4,13 +4,15 @@ import { useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TurnText } from "@/components/TurnText";
+import { useHistory } from "@/lib/history";
 import { useResolveProposal } from "@/lib/run";
 import { useSim } from "@/lib/store";
 
 // Follow-up conversation about the result on screen, shown in the right-hand drawer. A re-simulation
 // is only ever proposed here; it runs when the user clicks Re-simulate.
 export function ChatThread() {
-  const { messages, chatPending, status, result } = useSim();
+  const { messages, chatPending, status, result, runId } = useSim();
+  const active = useHistory((s) => s.items.find((h) => h.id === runId));
   const resolve = useResolveProposal();
   const list = useRef<HTMLDivElement>(null);
   const citations = new Map(result?.citations.map((c) => [c.id, c]) ?? []);
@@ -29,6 +31,14 @@ export function ChatThread() {
   }
 
   return (
+    <>
+    {active && (
+      <div className="mb-3 flex items-center gap-1.5 border-b pb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="shrink-0 text-brand">Active chat</span>
+        <span className="shrink-0">· {messages.length}</span>
+        <span className="truncate normal-case tracking-normal">· {active.label}</span>
+      </div>
+    )}
     <div ref={list} className="flex flex-col gap-3">
       {messages.map((m, i) =>
         m.role === "user" ? (
@@ -67,5 +77,6 @@ export function ChatThread() {
         </p>
       )}
     </div>
+    </>
   );
 }
