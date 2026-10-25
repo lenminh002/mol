@@ -13,7 +13,26 @@
       "pdb_id": "1IEP",
       "cell_location": "cytoplasm",
       "binding_score": -0.057773225009441376,
-      "pose_pdb_url": "files/poses/f510c87c87c5.sdf"
+      "pose_pdb_url": "files/poses/f510c87c87c5.sdf",
+      "role": "primary"
+    },
+    {
+      "name": "LCK (lymphocyte-specific protein tyrosine kinase)",
+      "uniprot": null,
+      "pdb_id": null,
+      "cell_location": "cytoplasm",
+      "role": "off_target",
+      "binding_score": null,
+      "pose_pdb_url": null
+    },
+    {
+      "name": "NTRK1 (TrkA receptor kinase)",
+      "uniprot": null,
+      "pdb_id": null,
+      "cell_location": "membrane",
+      "role": "off_target",
+      "binding_score": null,
+      "pose_pdb_url": null
     }
   ],
   "effects": [

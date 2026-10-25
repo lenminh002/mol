@@ -75,7 +75,9 @@ JUDGE = f"""You are the judge of a drug-mechanism review panel. You receive the 
 (drug, target, docking, literature) and the full debate between the pharmacologist and the skeptic.
 
 Produce the panel's verdict as structured data that will drive a 3D cell visualisation:
-- targets: the drug's molecular target(s), each placed in one cell region ({REGIONS}).
+- targets: the drug's main molecular target first (role primary), then at most 3 other binding partners that the \
+evidence or debate documents (role off_target). Skip off-targets that are not named in the evidence. Each target is \
+placed in one cell region ({REGIONS}).
 - effects: 2–6 downstream effects. For each, choose the cell region it mainly plays out in, a direction \
 (up, down, block), a magnitude 0–1, and a status:
   - agreed: the proposer claimed it, it is cited, and the skeptic did not substantively dispute it;

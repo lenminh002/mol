@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { CellLocation, Direction, Effect, EffectStatus } from "@/lib/types";
-import { effectProgress, effectTimings } from "./effectTimeline";
+import { PHASE, effectProgress, effectTimings } from "./effectTimeline";
 
 export const MEMBRANE_RADIUS = 3;
 export const MEMBRANE_HEIGHT = 1.8;
@@ -34,6 +34,19 @@ export const ORGANELLES: Record<CellLocation, { position: THREE.Vector3; color: 
   cytoplasm: { position: new THREE.Vector3(-1.2, -0.65, 1.05), color: "#e4cfaa", label: "Cytoplasm" },
   mitochondria: { position: new THREE.Vector3(1.1, 0.55, 1.0), color: "#c87758", label: "Mitochondria" },
   er: { position: new THREE.Vector3(-1.55, 0.25, -0.1), color: "#88a99e", label: "Endoplasmic reticulum" },
+};
+
+// Hover labels on the meshes, mapped to the location their materials highlight under.
+export const ORGANELLE_LOCATION: Record<string, CellLocation> = {
+  Nucleus: "nucleus",
+  Mitochondrion: "mitochondria",
+  "Rough endoplasmic reticulum": "er",
+  "Smooth endoplasmic reticulum": "er",
+  "Golgi apparatus": "cytoplasm",
+  Lysosome: "cytoplasm",
+  Peroxisome: "cytoplasm",
+  "Transport vesicle": "cytoplasm",
+  Centrosome: "cytoplasm",
 };
 
 export function seededRandom(seed: number) {
@@ -94,14 +107,15 @@ export interface OrganelleAnim {
   dashed: boolean; // speculative effects
   blocked: boolean;
   tint: string | null;
+  target: boolean; // the drug binds here: brief glow when it docks
 }
 
-const NEUTRAL: OrganelleAnim = { direction: null, onset: 0, ramp: 1, peak: 0, pulse: 0, flicker: false, dashed: false, blocked: false, tint: null };
+const NEUTRAL: OrganelleAnim = { direction: null, onset: 0, ramp: 1, peak: 0, pulse: 0, flicker: false, dashed: false, blocked: false, tint: null, target: false };
 
 export const DIRECTION_TINT: Record<Direction, string> = { up: "#368d69", down: "#5a87bd", block: "#c55e54" };
 
 // Collapse effects[] into one animation per organelle. Stronger, more confident effects win.
-export function organelleAnims(effects: Effect[]): Record<CellLocation, OrganelleAnim> {
+export function organelleAnims(effects: Effect[], targetLocation?: CellLocation): Record<CellLocation, OrganelleAnim> {
   const out = Object.fromEntries(
     (Object.keys(ORGANELLES) as CellLocation[]).map((k) => [k, { ...NEUTRAL }]),
   ) as Record<CellLocation, OrganelleAnim>;
@@ -122,8 +136,10 @@ export function organelleAnims(effects: Effect[]): Record<CellLocation, Organell
       dashed: statusIs(e.status, "speculative"),
       blocked: e.direction === "block",
       tint: DIRECTION_TINT[e.direction],
+      target: e.organelle === targetLocation,
     };
   });
+  if (targetLocation) out[targetLocation].target = true;
   return out;
 }
 
@@ -143,12 +159,13 @@ export interface LiveAnim {
   opacity: number; // multiplier
 }
 
-export function liveAnim(anim: OrganelleAnim, t: number, wobble: number, highlighted: boolean, out: LiveAnim): LiveAnim {
+export function liveAnim(anim: OrganelleAnim, t: number, wobble: number, highlighted: boolean, out: LiveAnim, dimmed = false): LiveAnim {
   const level = anim.direction ? effectProgress(anim, t) * anim.peak : 0;
   const wave = anim.pulse ? 0.5 + 0.5 * Math.sin(wobble * anim.pulse * Math.PI) : 1;
   let glow = 0;
   let darken = 0;
   let scale = 1;
+  let tintBoost = 0;
   if (anim.direction === "up") {
     glow = 0.9 * level * (0.55 + 0.45 * wave);
     scale = 1 + level * (0.03 + 0.014 * Math.sin(wobble * anim.pulse * Math.PI));
@@ -161,14 +178,23 @@ export function liveAnim(anim: OrganelleAnim, t: number, wobble: number, highlig
     scale = 1 + 0.012 * level * Math.sin(wobble * Math.PI);
   }
   if (anim.flicker && level > 0.05 && Math.sin(wobble * 13) * Math.sin(wobble * 7.3) > 0.2) glow *= 0.35;
-  if (highlighted) glow += 0.09 + 0.05 * Math.sin(wobble * 6);
+  let opacity = anim.dashed ? 1 - 0.4 * Math.min(1, level * 3) : 1;
+  if (anim.target) glow += 0.22 * Math.exp(-(((t - PHASE.bind) / 0.9) ** 2));
+  if (highlighted) {
+    glow += 0.5 + 0.12 * Math.sin(wobble * 6);
+    scale *= 1.04;
+    tintBoost = 0.35;
+  } else if (dimmed) {
+    opacity *= 0.12;
+    darken += 0.1;
+  }
   out.level = level;
-  out.tintAmount = 0.9 * level;
+  out.tintAmount = Math.min(1, 0.9 * level + tintBoost);
   out.darken = darken;
   out.glow = glow;
   out.scale = scale;
   out.wire = anim.dashed && level > 0.2;
-  out.opacity = anim.dashed ? 1 - 0.4 * Math.min(1, level * 3) : 1;
+  out.opacity = opacity;
   return out;
 }
 

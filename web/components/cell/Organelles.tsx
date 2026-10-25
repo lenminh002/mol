@@ -14,6 +14,12 @@ export interface AnatomyProps {
   highlight: string | null;
   squish: SquishState;
   membraneOpacity: number;
+  isolateOnHover: boolean;
+}
+
+// With isolation on, any highlight fades everything but its own anatomy.
+function dimsOthers(isolate: boolean, highlight: string | null, location: CellLocation) {
+  return isolate && highlight !== null && highlight !== location;
 }
 
 type MaterialPatch = NonNullable<Parameters<typeof patchCellMaterial>[2]>;
@@ -28,10 +34,11 @@ function useClayMaterial(props: AnatomyProps, location: CellLocation, color: str
     return next;
   }, [color, opacity, side, props.squish, patchKey]);
   const colors = useMemo(() => ({ base: new THREE.Color(color), target: new THREE.Color(), tint: new THREE.Color(), live: newLiveAnim() }), [color]);
+  const dim = useRef({ material, active: false, transparent: false, depthWrite: true });
   useEffect(() => () => material.dispose(), [material]);
   useFrame(({ clock }, delta) => {
     const animation = props.anims[location];
-    const live = liveAnim(animation, playback.t, clock.elapsedTime, props.highlight === location, colors.live);
+    const live = liveAnim(animation, playback.t, clock.elapsedTime, props.highlight === location, colors.live, dimsOthers(props.isolateOnHover, props.highlight, location));
     colors.target.copy(colors.base);
     if (animation.tint) colors.target.lerp(colors.tint.set(animation.tint), live.tintAmount);
     colors.target.multiplyScalar(1 - live.darken);
@@ -40,6 +47,23 @@ function useClayMaterial(props: AnatomyProps, location: CellLocation, color: str
     material.emissiveIntensity = 0.015 + live.glow;
     material.wireframe = live.wire;
     material.opacity = opacity * live.opacity;
+    // Dimming needs blending even for opaque materials; restore their own state afterwards.
+    const dimmed = live.opacity < 1;
+    const base = dim.current;
+    if (base.material !== material) Object.assign(base, { material, active: false });
+    if (base.active !== dimmed) {
+      base.active = dimmed;
+      if (dimmed) {
+        base.transparent = material.transparent;
+        base.depthWrite = material.depthWrite;
+        material.transparent = true;
+        material.depthWrite = false;
+      } else {
+        material.transparent = base.transparent;
+        material.depthWrite = base.depthWrite;
+      }
+      material.needsUpdate = true;
+    }
   });
   return material;
 }
@@ -48,7 +72,7 @@ function useBreathe(props: AnatomyProps, location: CellLocation) {
   const group = useRef<THREE.Group>(null);
   const live = useMemo(newLiveAnim, []);
   useFrame(({ clock }) => {
-    group.current?.scale.setScalar(liveAnim(props.anims[location], playback.t, clock.elapsedTime, false, live).scale);
+    group.current?.scale.setScalar(liveAnim(props.anims[location], playback.t, clock.elapsedTime, props.highlight === location, live).scale);
   });
   return group;
 }

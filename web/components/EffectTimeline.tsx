@@ -23,7 +23,7 @@ export function EffectTimeline() {
   const marks = [PHASE.injectStart, PHASE.bind, ...onsets];
 
   return (
-    <div className="absolute right-4 top-4 z-10 w-[min(18rem,calc(100%-2rem))] rounded border bg-card/95 p-2.5" role="group" aria-label="Effect timeline">
+    <div className="rounded border bg-card/95 p-2.5" role="group" aria-label="Effect timeline">
       <div className="flex items-center gap-1">
         <button onClick={() => setPlaying(!playing)} className={button} aria-label={playing ? "Pause" : "Play"} title={playing ? "Pause" : "Play"}>
           {playing ? <Pause size={14} /> : <Play size={14} />}

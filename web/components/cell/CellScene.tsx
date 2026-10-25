@@ -10,11 +10,12 @@ import type { CellLocation, Target } from "@/lib/types";
 import { DrugParticles } from "./DrugParticles";
 import { Hotspot, LabelProjector } from "./Hotspot";
 import { PHASE, effectTimings, timelineDuration } from "./effectTimeline";
-import { DIRECTION_TINT, DRUG_ENTRY, ORGANELLES, membraneRadiusAt, organelleAnims } from "./layout";
+import { DIRECTION_TINT, DRUG_ENTRY, ORGANELLES, ORGANELLE_LOCATION, membraneRadiusAt, organelleAnims } from "./layout";
 import { Needle } from "./Needle";
 import { resetPlayback } from "./playback";
 import { AccessoryOrganelles, EndoplasmicReticulum, Golgi, Membrane, Mitochondria, Nucleus, Ribosomes } from "./Organelles";
 import { ReasoningPath } from "./ReasoningPath";
+import { TargetCopies } from "./TargetCopies";
 import { SignalWaves, type WaveSpec } from "./SignalWave";
 import { PlaybackDriver, TimeGate } from "./TimeGate";
 import { createSquishState, deformPoint, stepSquish, type SquishState } from "./squish";
@@ -33,16 +34,20 @@ function homeCamera(width: number, height: number): typeof HOME_CAMERA {
   return [x * scale, y * scale, z * scale, 0, 0, 0];
 }
 const DIRECTION_ARROW = { up: "↑", down: "↓", block: "⊘" } as const;
+const DIRECTION_LABEL = { up: "Increased", down: "Decreased", block: "Blocked (inhibited)" } as const;
 const LABEL_OFFSET = new THREE.Vector3(0, 0.22, 0);
 
-function hotspotPosition(t: Target, index: number) {
+// `sibling` counts earlier pins in the same region, so several targets there don't overlap.
+function hotspotPosition(t: Target, sibling: number) {
   const base = ORGANELLES[t.cell_location].position.clone();
   if (t.cell_location === "membrane") {
-    base.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), index * 0.5);
+    base.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), sibling * 0.6);
     return base.multiplyScalar(membraneRadiusAt(base));
   }
   // Keep the representative mitochondrial pin attached to the chosen instance.
-  return base.add(new THREE.Vector3(index * 0.08, t.cell_location === "nucleus" ? 0.7 : 0.1, 0));
+  const spread = sibling === 0 ? 0 : 0.6 * Math.ceil(sibling / 2) * (sibling % 2 ? 1 : -1);
+  const lift = (t.cell_location === "nucleus" ? 0.7 : 0.1) - 0.3 * sibling;
+  return base.add(new THREE.Vector3(spread, lift, sibling * 0.12));
 }
 
 type Focus = (position: THREE.Vector3, radius: number, target?: string) => void;
@@ -215,6 +220,12 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
       }
       return { owner, point, label: String(owner.userData.targetName ?? owner.userData.organelleLabel ?? ""), radius: Number(owner.userData.focusRadius ?? 0.25) };
     };
+    // Only clear a highlight this canvas set, so label hover isn't wiped on pointer leave.
+    let canvasHighlight = false;
+    const clearCanvasHighlight = () => {
+      if (canvasHighlight) useSim.getState().setHighlight(null);
+      canvasHighlight = false;
+    };
     const hideHover = () => {
       hoverAnchor.current = null;
       if (tooltip.current) tooltip.current.style.opacity = "0";
@@ -264,7 +275,13 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
         tooltip.current.textContent = hit.label;
         hoverAnchor.current = hit.point;
         canvas.style.cursor = "pointer";
-      } else hideHover();
+        const key = ORGANELLE_LOCATION[hit.label] ?? null;
+        if (useSim.getState().highlight !== key) useSim.getState().setHighlight(key);
+        canvasHighlight = key !== null;
+      } else {
+        hideHover();
+        clearCanvasHighlight();
+      }
     };
     const finish = (event: PointerEvent) => {
       const click = event.type === "pointerup" && pressed && pressed.moved < 4 && pointers.size === 1;
@@ -287,17 +304,19 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
     canvas.addEventListener("pointerup", finish);
     canvas.addEventListener("pointercancel", finish);
     canvas.addEventListener("lostpointercapture", finish);
-    canvas.addEventListener("pointerleave", hideHover);
+    const leave = () => { hideHover(); clearCanvasHighlight(); };
+    canvas.addEventListener("pointerleave", leave);
     return () => {
       squish.dragging = false;
       restore();
       hideHover();
+      clearCanvasHighlight();
       canvas.removeEventListener("pointerdown", down, true);
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("pointerup", finish);
       canvas.removeEventListener("pointercancel", finish);
       canvas.removeEventListener("lostpointercapture", finish);
-      canvas.removeEventListener("pointerleave", hideHover);
+      canvas.removeEventListener("pointerleave", leave);
     };
   }, [active, camera, controls, focus, gl, proxy, scene, squish, tooltip]);
 
@@ -306,7 +325,7 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
 }
 
 export function CellScene() {
-  const { result, highlight, view, selectTarget, setHighlight } = useSim();
+  const { result, highlight, isolateOnHover, view, selectTarget, setHighlight } = useSim();
   const [membraneOpacity, setMembraneOpacity] = useState(100);
   const controls = useRef<CameraControls>(null);
   const container = useRef<HTMLDivElement>(null);
@@ -316,21 +335,30 @@ export function CellScene() {
   const ruler = useRef<HTMLDivElement>(null);
   const navigation = useRef(0);
   const squish = useMemo(createSquishState, []);
-  const anims = useMemo(() => organelleAnims(result?.effects ?? []), [result]);
-  const targets = useMemo(() => (result?.targets ?? []).map((target, index) => ({ target, position: hotspotPosition(target, index) })), [result]);
+  const anims = useMemo(() => organelleAnims(result?.effects ?? [], result?.targets[0]?.cell_location), [result]);
+  const targets = useMemo(() => {
+    const seen = new Map<CellLocation, number>();
+    return (result?.targets ?? []).map((target) => {
+      const sibling = seen.get(target.cell_location) ?? 0;
+      seen.set(target.cell_location, sibling + 1);
+      return { target, position: hotspotPosition(target, sibling), offTarget: target.role === "off_target" };
+    });
+  }, [result]);
   const surfaces = useMemo(() => targets.map(({ target }) => target.cell_location === "membrane"), [targets]);
   const path = useMemo(() => {
-    if (!targets.length || !result) return { points: [] as THREE.Vector3[], surface: [] as boolean[] };
+    if (!targets.length || !result) return { points: [] as THREE.Vector3[], surface: [] as boolean[], organelles: [] as (CellLocation | null)[] };
     const seen = new Set<CellLocation>([targets[0].target.cell_location]);
     const points = [DRUG_ENTRY.clone(), targets[0].position];
     const surface = [false, targets[0].target.cell_location === "membrane"];
+    const organelles: (CellLocation | null)[] = [null, null];
     for (const effect of result.effects) {
       if (seen.has(effect.organelle)) continue;
       seen.add(effect.organelle);
       points.push(ORGANELLES[effect.organelle].position.clone());
       surface.push(effect.organelle === "membrane");
+      organelles.push(effect.organelle);
     }
-    return { points, surface };
+    return { points, surface, organelles };
   }, [result, targets]);
 
   // Downstream path stops: one per organelle, labelled with its strongest effect.
@@ -350,6 +378,12 @@ export function CellScene() {
       onset: timings[index].onset,
     })).sort((a, b) => a.onset - b.onset);
   }, [result, targets]);
+
+  // Path dots take their label's direction colour; the drug entry and target keep the neutral accent.
+  const pathColors = useMemo(() => path.organelles.map((organelle) => {
+    const node = organelle && effectNodes.find((n) => n.organelle === organelle);
+    return node ? DIRECTION_TINT[node.effect.direction] : undefined;
+  }), [path, effectNodes]);
 
   const waves = useMemo<WaveSpec[]>(() => {
     if (!result || !targets.length) return [];
@@ -408,10 +442,11 @@ export function CellScene() {
     const eye = position.clone().addScaledVector(direction, distance);
     try {
       await control.setLookAt(eye.x, eye.y, eye.z, position.x, position.y, position.z, !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-      if (target && token === navigation.current && useSim.getState().view === "cell") selectTarget(target);
+      const hasStructure = useSim.getState().result?.targets.some((t) => t.name === target && t.pdb_id);
+      if (target && hasStructure && token === navigation.current && useSim.getState().view === "cell") selectTarget(target);
     } catch { /* A newer camera gesture can interrupt a flight. */ }
   }, [selectTarget]);
-  const props = { anims, highlight, squish, membraneOpacity: membraneOpacity / 100 };
+  const props = { anims, highlight, squish, membraneOpacity: membraneOpacity / 100, isolateOnHover };
 
   return (
     <div ref={container} className="absolute inset-0" aria-label="Interactive illustrative human cell">
@@ -435,21 +470,22 @@ export function CellScene() {
         <Ribosomes {...props} />
         <AccessoryOrganelles {...props} />
         <ContactShadows position={[0, -2.05, 0]} opacity={0.24} scale={12} blur={2.8} far={5} resolution={128} color="#786454" />
-        {targets.map(({ target, position }) => <Hotspot key={target.name} targetName={target.name} position={position} surface={target.cell_location === "membrane"} squish={squish} blocked={anims[target.cell_location].blocked} flashAt={PHASE.bind} />)}
+        {targets.map(({ target, position, offTarget }) => <Hotspot key={target.name} targetName={target.name} offTarget={offTarget} position={position} surface={target.cell_location === "membrane"} squish={squish} tint={anims[target.cell_location].tint} flashAt={PHASE.bind} />)}
+        {targets[0] && <TargetCopies location={targets[0].target.cell_location} color={anims[targets[0].target.cell_location].tint ?? "#0f766e"} squish={squish} />}
         <LabelProjector anchors={targets.map((t) => t.position)} labels={labels} squish={squish} surface={surfaces} offset={LABEL_OFFSET} />
         <LabelProjector anchors={effectNodes.map((n) => n.position)} labels={effectLabels} squish={squish} surface={effectNodes.map((n) => n.organelle === "membrane")} offset={LABEL_OFFSET} showAt={effectNodes.map((n) => n.onset)} />
         {targets[0] && <DrugParticles target={targets[0].position} squish={squish} surface={surfaces[0]} blocked={anims[targets[0].target.cell_location].blocked} />}
         {result && <Needle squish={squish} />}
         {targets[0] && <SignalWaves from={targets[0].position} waves={waves} squish={squish} />}
-        <TimeGate from={PHASE.cascadeStart}><ReasoningPath points={path.points} surface={path.surface} squish={squish} /></TimeGate>
+        <TimeGate from={PHASE.cascadeStart}><ReasoningPath points={path.points} surface={path.surface} colors={pathColors} squish={squish} /></TimeGate>
         <PlaybackDriver />
         <CameraControls ref={controls} makeDefault minDistance={1} maxDistance={26} smoothTime={0.35} dollySpeed={5} dollyToCursor enabled={view === "cell"} touches={{ one: CameraControlsImpl.ACTION.TOUCH_ROTATE, two: CameraControlsImpl.ACTION.TOUCH_DOLLY_TRUCK, three: CameraControlsImpl.ACTION.TOUCH_TRUCK }} />
         <SceneInteraction controls={controls} squish={squish} active={view === "cell"} focus={focus} tooltip={tooltip} ruler={ruler} />
       </Canvas>
       <div ref={tooltip} role="status" className="pointer-events-none absolute left-0 top-0 z-20 whitespace-nowrap rounded border bg-card px-2.5 py-1.5 text-xs opacity-0 shadow-sm" />
-      {targets.map(({ target, position }, i) => (
-        <button key={target.name} ref={(el) => { labels.current[i] = el; }} onClick={() => focus(deformPoint(position, squish, surfaces[i] ? 1 : 0.18, surfaces[i] ? 1 : 1.8), 0.3, target.name)} className={`absolute left-0 top-0 z-10 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${view === "cell" ? "" : "hidden"}`}>
-          {target.name}{target.pdb_id && <span className="ml-1.5 font-mono text-[9px] text-muted-foreground">{target.pdb_id}</span>}
+      {targets.map(({ target, position, offTarget }, i) => (
+        <button key={target.name} ref={(el) => { labels.current[i] = el; }} onMouseEnter={() => setHighlight(target.cell_location)} onMouseLeave={() => setHighlight(null)} onClick={() => focus(deformPoint(position, squish, surfaces[i] ? 1 : 0.18, surfaces[i] ? 1 : 1.8), 0.3, target.name)} className={`absolute left-0 top-0 z-10 whitespace-nowrap rounded border bg-card/95 px-2 py-1 text-[11px] shadow-sm transition-opacity hover:border-brand focus-visible:outline-2 focus-visible:outline-brand ${offTarget ? "border-dashed text-muted-foreground" : ""} ${view === "cell" ? "" : "hidden"}`}>
+          {offTarget && <span className="mr-1.5 text-[9px] uppercase tracking-wide">off-target</span>}{target.name}{target.pdb_id && <span className="ml-1.5 font-mono text-[9px] text-muted-foreground">{target.pdb_id}</span>}
         </button>
       ))}
       {effectNodes.map(({ organelle, effect, position }, i) => (
@@ -467,6 +503,20 @@ export function CellScene() {
           <span className="ml-1.5 block max-w-52 truncate text-[10px] text-muted-foreground">{effect.pathway}</span>
         </button>
       ))}
+      {(effectNodes.length > 0 || targets.length > 0) && (
+        <ul aria-label="Colour key" className={`pointer-events-none absolute bottom-40 right-4 z-10 w-48 space-y-1 rounded border bg-card/95 p-3 text-[10px] text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>
+          <li className="flex items-center gap-2"><span className="size-2 rounded-full" style={{ background: "#0f766e" }} />Main target (click)</li>
+          <li className="flex items-center gap-2"><span className="size-1 rounded-full bg-muted-foreground" />Small dots: more copies</li>
+          {targets.some((t) => t.offTarget) && <li className="flex items-center gap-2"><span className="size-1.5 rounded-full" style={{ background: "#7c8a86" }} />Off-target (weaker)</li>}
+          {(["up", "down", "block"] as const).map((d) => (
+            <li key={d} className="flex items-center gap-2">
+              <span className="size-2 rounded-full" style={{ background: DIRECTION_TINT[d] }} />
+              <span className="font-medium text-foreground">{DIRECTION_ARROW[d]}</span>
+              {DIRECTION_LABEL[d]}
+            </li>
+          ))}
+        </ul>
+      )}
       <div className={`absolute bottom-4 right-4 z-10 w-44 rounded border bg-card/95 p-3 ${view === "cell" ? "" : "hidden"}`}>
         <div className="mb-2 flex items-center justify-between gap-2">
           <label htmlFor="membrane-opacity" className="text-[11px] font-medium">Membrane</label>
@@ -478,7 +528,7 @@ export function CellScene() {
         </div>
         <div ref={ruler} className="mt-3 border-t pt-3 text-[9px] text-muted-foreground" aria-label="Approximate scale at focus depth"><div className="h-1.5 border-x border-b border-foreground" style={{ width: 80 }} /><span className="mt-1 block font-mono">≈ 5 µm</span></div>
       </div>
-      <p className={`pointer-events-none absolute bottom-4 left-4 max-w-[calc(100%-13rem)] text-[9px] leading-relaxed text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>Drag cell to squish<br />Drag background to orbit · Scroll or W/S to zoom · A/D to move · Esc to reset</p>
+      <p className={`pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-center max-w-[calc(100%-26rem)] text-[9px] leading-relaxed text-muted-foreground ${view === "cell" ? "" : "hidden"}`}>Drag cell to squish<br />Drag background to orbit · Scroll or W/S to zoom · A/D to move · Esc to reset</p>
     </div>
   );
 }

@@ -18,6 +18,7 @@ export interface Target {
   uniprot: string | null;
   pdb_id: string | null;
   cell_location: CellLocation;
+  role?: "primary" | "off_target"; // absent on runs saved before off-targets existed
   binding_score: number | null;
   pose_pdb_url: string | null;
 }

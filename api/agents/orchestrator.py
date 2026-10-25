@@ -159,6 +159,7 @@ def _assemble(board: EvidenceBoard, drug_name: str, verdict: claude.JudgeVerdict
                 uniprot=t.get("uniprot"),
                 pdb_id=t.get("pdb_id"),
                 cell_location=jt.cell_location,
+                role="primary" if i == 0 else jt.role,
                 binding_score=dock.get("best_confidence") if dock else None,
                 pose_pdb_url=f"files/{dock['pose_file']}" if dock else None,
             )

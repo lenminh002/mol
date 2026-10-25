@@ -11,6 +11,7 @@ interface Props {
   squish?: SquishState;
   surface?: boolean[];
   fixed?: boolean[];
+  colors?: (string | undefined)[]; // per-point dot colour; defaults to the path orange
 }
 
 type PathLine = ComponentRef<typeof Line>;
@@ -55,7 +56,7 @@ function updateLine(line: PathLine | null, points: THREE.Vector3[]) {
 }
 
 // The judge's reasoning chain travels hop by hop between its moving anchors.
-export function ReasoningPath({ points, squish, surface, fixed }: Props) {
+export function ReasoningPath({ points, squish, surface, fixed, colors }: Props) {
   const underlayRef = useRef<PathLine>(null);
   const lineRef = useRef<PathLine>(null);
   const nodeRefs = useRef<(THREE.Mesh | null)[]>([]);
@@ -101,8 +102,8 @@ export function ReasoningPath({ points, squish, surface, fixed }: Props) {
       />
       {points.map((p, i) => (
         <mesh key={i} ref={(mesh) => { nodeRefs.current[i] = mesh; }} position={p} raycast={() => {}}>
-          <sphereGeometry args={[0.09, 16, 16]} />
-          <meshBasicMaterial color="#d97706" toneMapped />
+          <sphereGeometry args={[0.08, 16, 16]} />
+          <meshBasicMaterial color={colors?.[i] ?? "#d97706"} toneMapped />
         </mesh>
       ))}
     </group>
