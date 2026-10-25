@@ -27,3 +27,13 @@ def test_prunes_and_clears(tmp_path, monkeypatch):
     assert len(db.list_runs()) == 3
     db.clear_runs()
     assert db.list_runs() == []
+
+
+def test_chat_is_stored_with_the_run(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "runs.db")
+    db.init()
+    run_id = db.save_run({"drug": "aspirin"}, {"summary": "a"}, [], None)
+    assert db.get_run(run_id)["chat"] == []
+    thread = [{"role": "user", "content": "why?"}, {"role": "assistant", "content": "because"}]
+    db.save_chat(run_id, thread)
+    assert db.get_run(run_id)["chat"] == thread

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, Loader2, Mic, Square } from "lucide-react";
-import { useRunSimulation } from "@/lib/run";
+import { useAskFollowup, useRunSimulation } from "@/lib/run";
 import { useSim } from "@/lib/store";
 
 const SUGGESTIONS = [
@@ -39,8 +39,9 @@ const getRecognitionCtor = (): (new () => Recognition) | undefined => {
 };
 
 export function AskBar() {
-  const { status, prompt, setPrompt } = useSim();
+  const { status, prompt, setPrompt, result, chatPending } = useSim();
   const run = useRunSimulation();
+  const ask = useAskFollowup();
   const [suggestion, setSuggestion] = useState(SUGGESTIONS[0]);
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
@@ -80,11 +81,19 @@ export function AskBar() {
   };
 
   const running = status === "running";
-  const canSend = !running && !!prompt.trim();
+  // With a finished result on screen the bar is a follow-up chat; otherwise it starts a simulation.
+  const followUp = status === "done" && !!result;
+  const canSend = !running && !chatPending && !!prompt.trim();
   const send = () => {
     if (!canSend) return;
     recRef.current?.stop();
-    run({ prompt });
+    const text = prompt.trim();
+    if (followUp) {
+      setPrompt("");
+      void ask(text);
+    } else {
+      run({ prompt });
+    }
   };
 
   return (
@@ -120,9 +129,9 @@ export function AskBar() {
               send();
             }
           }}
-          placeholder={suggestion}
+          placeholder={followUp ? "Ask a follow-up about this result…" : suggestion}
           rows={1}
-          aria-label="Ask a question"
+          aria-label={followUp ? "Ask a follow-up" : "Ask a question"}
           className="field-sizing-content max-h-40 min-h-10 flex-1 resize-none self-center bg-transparent px-2 py-2 text-base leading-6 outline-none placeholder:text-muted-foreground"
         />
         {!prompt.trim() && (
@@ -130,12 +139,12 @@ export function AskBar() {
         )}
         <button
           type="button"
-          aria-label={running ? "Simulating" : "Simulate"}
+          aria-label={running ? "Simulating" : followUp ? "Ask" : "Simulate"}
           disabled={!canSend}
           onClick={send}
           className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-30"
         >
-          {running ? <Loader2 className="size-5 animate-spin" /> : <ArrowUp className="size-5" />}
+          {running || chatPending ? <Loader2 className="size-5 animate-spin" /> : <ArrowUp className="size-5" />}
         </button>
       </div>
     </div>

@@ -93,6 +93,18 @@ export type SimEvent =
   | { type: "saved"; id: string }
   | { type: "error"; message: string };
 
+// Follow-up chat (POST /chat). A proposal is only a request: nothing re-simulates until the user confirms.
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  proposal?: { prompt: string; reason: string; status: "pending" | "confirmed" | "declined" };
+}
+
+export type ChatEvent =
+  | { type: "answer"; text: string }
+  | { type: "resimulate_proposal"; prompt: string; reason: string }
+  | { type: "error"; message: string };
+
 // A finished run stored by the API (GET /history, GET /history/{id})
 export interface HistoryItem {
   id: string;
@@ -105,4 +117,5 @@ export interface StoredRun extends HistoryItem {
   result: SimulationResult;
   tool_calls: { agent: AgentName; tool: string; args: Record<string, unknown> }[];
   parsed: { drug: string; target: string | null } | null;
+  chat?: ChatMessage[];
 }

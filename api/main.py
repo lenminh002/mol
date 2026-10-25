@@ -20,12 +20,13 @@ from fastapi.staticfiles import StaticFiles
 from sse_starlette.sse import EventSourceResponse
 
 import db
+from agents import claude
 from agents.orchestrator import cached_result, run_simulation
 from presets import PRESETS
 from tools.binding_site import binding_site
 from tools import tts
 from tools.drug import autocomplete
-from schemas import Preset, SimulateRequest
+from schemas import ChatRequest, Preset, SimulateRequest
 
 DATA_DIR = Path(__file__).parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -140,6 +141,18 @@ def history_item(run_id: str) -> dict:
     return run
 
 
+class StoredChat(BaseModel):
+    messages: list[dict]  # as the UI keeps them, including re-simulation proposals and their status
+
+
+@app.put("/history/{run_id}/chat")
+def history_chat(run_id: str, body: StoredChat) -> dict:
+    if db.get_run(run_id) is None:
+        raise HTTPException(404, "No such run")
+    db.save_chat(run_id, body.messages)
+    return {"ok": True}
+
+
 @app.delete("/history/{run_id}")
 def history_delete(run_id: str) -> dict:
     db.delete_run(run_id)
@@ -150,6 +163,23 @@ def history_delete(run_id: str) -> dict:
 def history_clear() -> dict:
     db.clear_runs()
     return {"ok": True}
+
+
+async def chat_events(req: ChatRequest) -> AsyncIterator[dict]:
+    try:
+        reply = await claude.followup(
+            req.result.model_dump_json(by_alias=True), [m.model_dump() for m in req.messages]
+        )
+    except Exception as e:  # surface model/refusal errors to the thread instead of dropping the stream
+        yield event({"type": "error", "message": str(e)})
+        return
+    yield event(reply)
+
+
+@app.post("/chat")
+async def chat(req: ChatRequest) -> EventSourceResponse:
+    """Follow-up question about the result on screen; may propose (never run) a new simulation."""
+    return EventSourceResponse(chat_events(req))
 
 
 @app.post("/simulate")

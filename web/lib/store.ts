@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { DebateTurn, SimEvent, SimulateRequest, SimulationResult, StoredRun } from "./types";
+import type { ChatMessage, DebateTurn, SimEvent, SimulateRequest, SimulationResult, StoredRun } from "./types";
 
 type Status = "idle" | "running" | "done" | "error";
 type View = "cell" | "molecule";
@@ -22,6 +22,15 @@ interface SimState {
   selectedTarget: string | null;
   highlight: string | null;
   prompt: string;
+  messages: ChatMessage[]; // follow-up thread; survives reset() so it continues across a confirmed re-simulation
+  chatPending: boolean;
+  runId: string | null; // the stored run on screen: where the thread is saved
+  drawerOpen: boolean; // right-hand drawer (Reasoning / Chat)
+  drawerTab: "reasoning" | "chat";
+  setDrawer: (open: boolean, tab?: "reasoning" | "chat") => void;
+  addMessage: (message: ChatMessage) => void;
+  setProposalStatus: (index: number, status: "confirmed" | "declined") => void;
+  setChatPending: (pending: boolean) => void;
   setPrompt: (prompt: string) => void;
   setInput: (input: SimulateRequest) => void;
   reset: () => void;
@@ -45,6 +54,23 @@ export const useSim = create<SimState>((set) => ({
   selectedTarget: null,
   highlight: null,
   prompt: "",
+  messages: [],
+  chatPending: false,
+  runId: null,
+  drawerOpen: false,
+  drawerTab: "reasoning",
+  setDrawer: (drawerOpen, tab) => set((s) => ({ drawerOpen, drawerTab: tab ?? s.drawerTab })),
+  // Asking a question opens the drawer on the thread.
+  addMessage: (message) =>
+    set((s) => ({
+      messages: [...s.messages, message],
+      ...(message.role === "user" ? { drawerOpen: true, drawerTab: "chat" as const } : {}),
+    })),
+  setProposalStatus: (index, status) =>
+    set((s) => ({
+      messages: s.messages.map((m, i) => (i === index && m.proposal ? { ...m, proposal: { ...m.proposal, status } } : m)),
+    })),
+  setChatPending: (chatPending) => set({ chatPending }),
   setPrompt: (prompt) => set({ prompt }),
   setInput: (input) => set({ input }),
   reset: () =>
@@ -72,6 +98,9 @@ export const useSim = create<SimState>((set) => ({
       selectedTarget: null,
       highlight: null,
       prompt: "",
+      messages: [],
+      chatPending: false,
+      runId: null,
     }),
   applyEvent: (event) =>
     set((s) => {
@@ -87,7 +116,7 @@ export const useSim = create<SimState>((set) => ({
         case "result":
           return { result: event.result, status: "done", statusMessage: "" };
         case "saved":
-          return {};
+          return { runId: event.id };
         case "error":
           return { status: "error", statusMessage: event.message };
       }
@@ -104,6 +133,9 @@ export const useSim = create<SimState>((set) => ({
       view: "cell",
       selectedTarget: null,
       highlight: null,
+      messages: run.chat ?? [],
+      chatPending: false,
+      runId: run.id,
     }),
   setView: (view) => set({ view }),
   selectTarget: (name) => set({ selectedTarget: name, view: name ? "molecule" : "cell" }),

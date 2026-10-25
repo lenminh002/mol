@@ -1,21 +1,23 @@
-import type { SimEvent, SimulateRequest } from "./types";
+import type { ChatEvent, SimEvent, SimulateRequest, SimulationResult } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 // POST + streamed SSE body (EventSource only supports GET, so we parse the stream ourselves).
-export async function streamSimulation(
-  req: SimulateRequest,
-  onEvent: (e: SimEvent) => void,
+async function postSSE<E extends { type: string }>(
+  path: string,
+  body: unknown,
+  onEvent: (e: E) => void,
+  onFail: (message: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  const res = await fetch(`${API_URL}/simulate`, {
+  const res = await fetch(`${API_URL}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-    body: JSON.stringify(req),
+    body: JSON.stringify(body),
     signal,
   });
   if (!res.ok || !res.body) {
-    onEvent({ type: "error", message: `API error ${res.status}` });
+    onFail(`API error ${res.status}`);
     return;
   }
 
@@ -39,10 +41,19 @@ export async function streamSimulation(
         .join("\n");
       if (!data) continue;
       try {
-        onEvent(JSON.parse(data) as SimEvent);
+        onEvent(JSON.parse(data) as E);
       } catch {
         // ignore keep-alives / malformed chunks
       }
     }
   }
 }
+
+export const streamSimulation = (req: SimulateRequest, onEvent: (e: SimEvent) => void, signal?: AbortSignal) =>
+  postSSE<SimEvent>("/simulate", req, onEvent, (message) => onEvent({ type: "error", message }), signal);
+
+export const streamChat = (
+  body: { result: SimulationResult; messages: { role: string; content: string }[] },
+  onEvent: (e: ChatEvent) => void,
+  signal?: AbortSignal,
+) => postSSE<ChatEvent>("/chat", body, onEvent, (message) => onEvent({ type: "error", message }), signal);

@@ -225,6 +225,41 @@ async def rebut(case: str, challenge: str) -> str:
     return _text(resp)
 
 
+# --- follow-up chat -------------------------------------------------------------
+
+PROPOSE_RESIMULATION = {
+    "name": "propose_resimulation",
+    "description": "Ask the user to confirm a new simulation. Nothing runs until they agree.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "prompt": {"type": "string", "description": "Self-contained question for the new simulation"},
+            "reason": {"type": "string", "description": "One sentence on why the current result cannot answer"},
+        },
+        "required": ["prompt", "reason"],
+    },
+}
+
+
+async def followup(result_json: str, messages: list[dict]) -> dict:
+    """Answer a question about a finished result. Returns {"type": "answer", "text"} or
+    {"type": "resimulate_proposal", "prompt", "reason"}; a new simulation is only ever proposed, never run."""
+    resp = await client().beta.messages.create(
+        model=MODEL,
+        max_tokens=4000,
+        system=f"{prompts.FOLLOWUP}\n\n<result>\n{result_json}\n</result>",
+        output_config={"effort": "medium"},
+        tools=[PROPOSE_RESIMULATION],
+        messages=messages,
+        **FALLBACK,
+    )
+    _check(resp)
+    for block in resp.content:
+        if block.type == "tool_use" and block.name == "propose_resimulation":
+            return {"type": "resimulate_proposal", "prompt": block.input["prompt"], "reason": block.input["reason"]}
+    return {"type": "answer", "text": _text(resp)}
+
+
 # --- judge ----------------------------------------------------------------------
 
 Region = Literal["membrane", "cytoplasm", "nucleus", "mitochondria", "er"]

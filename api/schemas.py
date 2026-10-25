@@ -82,6 +82,16 @@ class SimulateRequest(BaseModel):
     fresh: bool = False  # bypass a cached preset result and run the debate live
 
 
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ChatRequest(BaseModel):
+    result: SimulationResult  # the simulation currently on screen: the grounding for every answer
+    messages: list[ChatMessage]  # the whole thread so far, ending with the user's new question
+
+
 class Preset(BaseModel):
     id: str
     drug: str

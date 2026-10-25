@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "cn";
 import { ChevronRight, Loader2, RotateCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EffectLegend } from "@/components/EffectLegend";
 import { ReasoningGraph } from "@/components/ReasoningGraph";
+import { ChatThread } from "@/components/ChatThread";
 import { TurnText } from "@/components/TurnText";
-import { useRunSimulation } from "@/lib/run";
+import { usePersistChat, useRunSimulation } from "@/lib/run";
 import { useSim } from "@/lib/store";
 import type { AgentName, EffectStatus, SimulationResult } from "@/lib/types";
 
@@ -85,30 +86,35 @@ function VerdictSummary({ result }: { result: SimulationResult }) {
 }
 
 export function DebatePanel() {
-  const { debate, toolCalls, status, statusMessage, result, input } = useSim();
+  const { debate, toolCalls, status, statusMessage, result, input, chatPending, messages } = useSim();
+  const open = useSim((s) => s.drawerOpen);
+  const tab = useSim((s) => s.drawerTab);
+  const setDrawer = useSim((s) => s.setDrawer);
   const run = useRunSimulation();
+  usePersistChat();
   const citations = new Map(result?.citations.map((c) => [c.id, c]) ?? []);
   const scroller = useRef<HTMLDivElement>(null);
   const running = status === "running";
-  const [open, setOpen] = useState(false);
+  const chat = tab === "chat";
+  const width = chat ? "lg:w-[440px]" : "lg:w-[380px]"; // answers read better a little wider
 
   // Follow the debate as it streams; jump back to the verdict when it lands.
   useEffect(() => {
     const el = scroller.current;
-    if (!el) return;
+    if (!el || chat) return;
     if (result) el.scrollTo({ top: 0, behavior: "smooth" });
     else if (running) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [debate.length, result, running]);
+  }, [debate.length, result, running, chat]);
 
   return (
     <aside
       className={cn(
         "relative min-w-0 overflow-hidden rounded-md border bg-card transition-[width] duration-300 ease-in-out",
-        open ? "lg:w-[380px]" : "lg:w-11",
+        open ? width : "lg:w-11",
       )}
     >
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => setDrawer(true)}
         aria-label="Expand reasoning"
         aria-expanded={false}
         inert={open}
@@ -119,29 +125,46 @@ export function DebatePanel() {
       >
         <ChevronRight className="size-4 rotate-180" />
         <span className="text-[10px] font-medium uppercase tracking-[0.14em] lg:[writing-mode:vertical-rl]">
-          Reasoning{running ? " · running…" : ""}
+          {messages.length > 0 ? "Chat" : "Reasoning"}
+          {running ? " · running…" : chatPending ? " · replying…" : ""}
         </span>
       </button>
       <div
         ref={scroller}
         inert={!open}
         className={cn(
-          "scroll-thin flex h-full min-w-0 flex-col gap-3 overflow-y-auto p-3.5 transition-opacity duration-200 lg:w-[380px]",
+          "scroll-thin flex h-full min-w-0 flex-col gap-3 overflow-y-auto p-3.5 transition-opacity duration-200",
+          width,
           !open && "pointer-events-none opacity-0 max-lg:hidden",
         )}
       >
       <div className="flex items-center justify-between gap-2">
-        <button
-          onClick={() => setOpen(false)}
-          aria-label="Collapse reasoning"
-          aria-expanded
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
-        >
-          <ChevronRight className="size-4" />
-          <h2 className="text-[10px] font-medium uppercase tracking-[0.14em]">Reasoning</h2>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setDrawer(false)}
+            aria-label="Collapse panel"
+            aria-expanded
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+          {(["chat", "reasoning"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setDrawer(true, t)}
+              aria-pressed={tab === t}
+              className={cn(
+                "text-[10px] font-medium uppercase tracking-[0.14em] transition-colors",
+                tab === t ? "text-foreground underline underline-offset-4" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t}
+              {t === "chat" && chatPending && <span className="ml-1 inline-block size-1.5 animate-pulse rounded-full bg-brand" />}
+            </button>
+          ))}
+        </div>
         <div className="flex items-center gap-1.5">
-          {result?.from_cache && input.preset && (
+          {!chat && result?.from_cache && input.preset && (
             <Button
               variant="ghost"
               size="sm"
@@ -152,13 +175,16 @@ export function DebatePanel() {
               <RotateCw className="size-3" /> Run live
             </Button>
           )}
-          {result && <Badge variant="outline">{result.from_cache ? "saved run" : "live"}</Badge>}
+          {!chat && result && <Badge variant="outline">{result.from_cache ? "saved run" : "live"}</Badge>}
         </div>
       </div>
 
-      {status === "idle" && (
+      {chat && <ChatThread />}
+
+      {!chat && status === "idle" && (
         <p className="text-sm text-muted-foreground">Run a simulation to watch the agents debate.</p>
       )}
+      {!chat && (<>
       {statusMessage && (
         <p
           className={`flex items-start gap-2 text-sm ${status === "error" ? "text-destructive" : "text-muted-foreground"}`}
@@ -223,6 +249,7 @@ export function DebatePanel() {
           </ul>
         </div>
       )}
+      </>)}
       </div>
     </aside>
   );

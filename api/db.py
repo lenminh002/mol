@@ -33,6 +33,9 @@ def init() -> None:
                 ts INTEGER NOT NULL
             )"""
         )
+        # Follow-up chat thread, added after the first release: migrate existing databases.
+        if "chat_json" not in {r["name"] for r in conn.execute("PRAGMA table_info(runs)")}:
+            conn.execute("ALTER TABLE runs ADD COLUMN chat_json TEXT")
 
 
 def label_for(req: dict) -> str:
@@ -50,7 +53,7 @@ def save_run(req: dict, result: dict, tool_calls: list[dict], parsed: dict | Non
     with closing(_connect()) as conn, conn:
         conn.execute("DELETE FROM runs WHERE label = ?", (label,))
         conn.execute(
-            "INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO runs (id, label, req_json, result_json, tool_calls_json, parsed_json, ts) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (
                 run_id,
                 label,
@@ -86,8 +89,15 @@ def get_run(run_id: str) -> dict | None:
         "result": json.loads(r["result_json"]),
         "tool_calls": json.loads(r["tool_calls_json"]),
         "parsed": json.loads(r["parsed_json"]) if r["parsed_json"] else None,
+        "chat": json.loads(r["chat_json"]) if r["chat_json"] else [],
         "ts": r["ts"],
     }
+
+
+def save_chat(run_id: str, messages: list[dict]) -> None:
+    """Store the follow-up thread with its run, so loading the run from History restores it."""
+    with closing(_connect()) as conn, conn:
+        conn.execute("UPDATE runs SET chat_json = ? WHERE id = ?", (json.dumps(messages), run_id))
 
 
 def delete_run(run_id: str) -> None:
