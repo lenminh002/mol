@@ -37,7 +37,7 @@ flowchart TD
     KG --> E
     E --> A1[Proposer — Claude<br/>proposes mechanism + effects]
     A1 --> A2[Skeptic — Gemini<br/>challenges with counter-evidence]
-    A2 -->|rebuttal, max 2 rounds| A1
+    A2 -->|if CHALLENGED: one rebuttal, no reply| A1
     A2 --> J[Judge — Claude<br/>SimulationResult JSON]
     J --> V1[Cell view — three.js]
     J --> V2[Molecule view — Mol*]
@@ -237,7 +237,7 @@ caveats[]: string
 - `skeptic.py`: Gemini with function calling (the same tool functions, read from the evidence cache) and Google Search grounding. The system prompt says: attack weak claims, look for off-target effects, toxicity, resistance and over-read docking scores, and cite counter-evidence or flag missing evidence.
 - `judge.py`: Claude with `output_config.format` set to the `SimulationResult` JSON schema. It marks each effect `agreed`, `disputed` or `speculative`, sets confidence and caveats, and outputs a `reasoning_path` of graph triples behind the conclusion.
 - The skeptic queries the graph for off-target edges (`query_graph(drug)` → other targets → their organelles and phenotypes) as counter-evidence.
-- `orchestrator.py`: runs proposer → skeptic → (if the skeptic disputes more than one claim) proposer rebuttal → judge, with at most 2 rounds. Each step yields SSE events. Errors fall back to `cache/`.
+- `orchestrator.py`: runs proposer → skeptic → (only if the skeptic's final line is `Verdict: CHALLENGED`) a single tool-less proposer rebuttal of at most 150 words → judge. There is one rebuttal and no further skeptic reply. Each step yields SSE events. Errors fall back to `cache/`.
 - Safety: enable server-side fallbacks (`betas:["server-side-fallback-2026-07-01"]`, `fallbacks:"default"`) and check `stop_reason == "refusal"`. Keep prompts to therapeutic pharmacology.
 
 **As built (deviations from the original plan)**

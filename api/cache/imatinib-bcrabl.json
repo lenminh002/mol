@@ -12,174 +12,144 @@
       "uniprot": "P00519",
       "pdb_id": "1IEP",
       "cell_location": "cytoplasm",
-      "binding_score": null,
-      "pose_pdb_url": null
+      "binding_score": -0.057773225009441376,
+      "pose_pdb_url": "files/poses/f510c87c87c5.sdf"
     }
   ],
   "effects": [
     {
-      "pathway": "BCR-ABL kinase activity (conformation-selective ATP-site inhibition)",
+      "pathway": "BCR-ABL tyrosine kinase activity",
       "organelle": "cytoplasm",
       "direction": "block",
       "magnitude": 0.9,
       "status": "agreed",
-      "confidence": 0.9,
-      "explanation": "Imatinib binds the ATP site of ABL only in its inactive, DFG-flipped conformation and locks the kinase there, so it cannot pass phosphate to its targets. Crystal structures support this, and the skeptic accepted it.",
+      "confidence": 0.8,
+      "explanation": "Imatinib holds BCR-ABL in an inactive conformation that cannot bind ATP. This blocks the constitutively active kinase.",
       "source_ids": [
-        "pmid:10988075",
-        "pmid:12154025",
-        "pmid:16640460",
-        "pdb:1IEP"
+        "pmid:14676625",
+        "pdb:1IEP",
+        "uniprot:P00519"
       ]
     },
     {
-      "pathway": "Apoptosis of CML cells",
-      "organelle": "mitochondria",
-      "direction": "up",
-      "magnitude": 0.6,
-      "status": "agreed",
-      "confidence": 0.6,
-      "explanation": "Increased apoptosis in CML cells. After the debate this claim rests on pmid:15558795 alone, and the proposer rated that evidence as moderate in strength.",
-      "source_ids": [
-        "pmid:15558795"
-      ]
-    },
-    {
-      "pathway": "Hck/STAT5b-driven autocrine IGF-1 signalling",
+      "pathway": "BCR-ABL-dependent Src kinase activity",
       "organelle": "cytoplasm",
       "direction": "down",
       "magnitude": 0.5,
       "status": "agreed",
-      "confidence": 0.55,
-      "explanation": "Bcr-Abl drives autocrine IGF-1 signalling through Hck/STAT5b. Blocking the kinase is claimed to reduce this signalling, and the skeptic considered it supported.",
+      "confidence": 0.6,
+      "explanation": "Src activity that depends on BCR-ABL falls in primitive CML cells. Src activity that does not depend on BCR-ABL is unaffected.",
       "source_ids": [
-        "pmid:18246120"
+        "pmid:19047139"
       ]
     },
     {
-      "pathway": "STAT5 DNA binding and target genes (Bcl-x, Mcl-1, c-Myc, cyclin D2)",
-      "organelle": "nucleus",
+      "pathway": "Phospho-MAPK signalling (growth-factor driven)",
+      "organelle": "cytoplasm",
+      "direction": "up",
+      "magnitude": 0.4,
+      "status": "agreed",
+      "confidence": 0.5,
+      "explanation": "Phospho-MAPK increases when growth factors are present. This may be an escape route for the cells.",
+      "source_ids": [
+        "pmid:19047139"
+      ]
+    },
+    {
+      "pathway": "Leukemic cell proliferation",
+      "organelle": "cytoplasm",
       "direction": "down",
-      "magnitude": 0.5,
-      "status": "disputed",
-      "confidence": 0.3,
-      "explanation": "These data come from a different BCR-ABL inhibitor, PD180970, not imatinib. Both sides agreed this is unsupported for imatinib specifically; it remains only an inference from BCR-ABL inhibition in general.",
+      "magnitude": 0.7,
+      "status": "agreed",
+      "confidence": 0.65,
+      "explanation": "Blocking BCR-ABL reduces proliferation of BCR-ABL-positive cells. Proliferation is a whole-cell effect, shown here in the cytoplasm where the signalling occurs.",
       "source_ids": [
-        "pmid:12483533"
+        "pmid:15256422"
       ]
     },
     {
-      "pathway": "Off-target cardiac mitochondrial dysfunction via Sab/JNK (oxidative stress, loss of respiration and ATP)",
+      "pathway": "Apoptosis",
       "organelle": "mitochondria",
       "direction": "up",
-      "magnitude": 0.3,
+      "magnitude": 0.6,
       "status": "agreed",
-      "confidence": 0.4,
-      "explanation": "Mitochondrial dysfunction through Sab was observed in rat heart-like cells in vitro only. It is not evidence of clinical cardiotoxicity.",
+      "confidence": 0.55,
+      "explanation": "Apoptosis increases in BCR-ABL-positive cells. The proposer gave no organelle for this effect; placing it in the mitochondria is a visual choice and is not supported by the evidence.",
       "source_ids": [
-        "pmid:28315715"
+        "pmid:15256422"
       ]
+    },
+    {
+      "pathway": "STAT5-driven gene transcription",
+      "organelle": "nucleus",
+      "direction": "down",
+      "magnitude": 0.3,
+      "status": "speculative",
+      "confidence": 0.2,
+      "explanation": "Effects on nuclear transcription are plausible but were not supported by the retrieved sources.",
+      "source_ids": []
     }
   ],
   "debate": [
     {
       "agent": "proposer",
       "round": 1,
-      "text": "**Imatinib → BCR-ABL: what the evidence shows**\n\n**1. Primary target and location**\nImatinib [pubchem:5291] blocks the ABL1 kinase domain of the BCR-ABL fusion protein [uniprot:P00519]. This protein is a kinase that is always switched on in chronic myeloid leukaemia (CML), and it sits in the **cytoplasm** [pdb:1IEP].\n\n**2. How it works**\nImatinib binds in the kinase's ATP-binding site. It only fits when ABL is in a specific inactive shape, where the activation loop is unphosphorylated and the DFG motif is flipped. Imatinib locks the kinase in that shape, so it cannot pass phosphate to its targets [pmid:10988075; pmid:12154025; pmid:16640460]. The kinase domains of KIT and PDGFR can take the same shape, so imatinib also hits them. c-Src mostly cannot, so imatinib inhibits it only weakly [pmid:17355866].\n\n**3. Downstream effects**\n- Cytoplasm: BCR-ABL kinase activity **blocked** [pmid:10988075].\n- Nucleus: STAT5 DNA binding **decreased**, along with its target genes Bcl-x, Mcl-1, c-Myc and cyclin D2. This was shown with a different BCR-ABL inhibitor, PD180970, not imatinib, so it is indirect evidence [pmid:12483533].\n- Mitochondria: apoptosis in CML cells **increased** [pmid:12483533; pmid:15558795].\n- Cytoplasm: Hck/STAT5b-driven IGF-1 signalling **decreased** [pmid:18246120].\n- Mitochondria of heart cells (off-target): oxidative stress and loss of respiration and ATP **increased**, through Sab/JNK signalling. This comes from rat heart-like cells only [pmid:28315715].\n\n**4. Strength of evidence**\n- **Clinical, strong:** after about 11 years of follow-up, 83.3% of patients were alive and 82.8% had a complete cytogenetic response [pmid:28273028]. Newer drugs give deeper molecular responses [pmid:38820078; pmid:27217448].\n- **Structural, strong:** crystal structures of imatinib bound to Abl [pmid:10988075; pmid:12154025].\n- **Lab-based, moderate:** the downstream signalling and heart-toxicity findings.\n- **Computational, none:** docking failed (the docking service was unavailable), so there is no docking score.",
+      "text": "**Imatinib → BCR-ABL: case for the panel**\n\n**1. Target and location**\nThe target is the ABL1 kinase domain of the BCR-ABL fusion protein (uniprot:P00519, pdb:1IEP). It sits in the **cytoplasm**: the knowledge graph links imatinib to ABL1, ABL1 to the actin cytoskeleton, and that to the cytoplasm [hetionet:CbG, hetionet:GpCC]. Imatinib itself has no Lipinski violations (MW 493.6, logP 4.59) [pubchem:5291].\n\n**2. Mechanism**\nImatinib holds BCR-ABL in its inactive conformation, which cannot bind ATP. This blocks the fusion protein's constantly active tyrosine kinase [pmid:14676625]. The drug gets in more easily when Tyr393 is dephosphorylated [pmid:12970766]. Mutations at T315I, a residue the drug contacts, cause resistance [pmid:15256422, pmid:19056677].\n\n**3. Downstream effects**\n- Cytoplasm: BCR-ABL tyrosine kinase activity is **blocked** [pmid:14676625].\n- Cytoplasm: Src activity that depends on BCR-ABL is **decreased**; Src activity that does not is unaffected [pmid:19047139].\n- Cytoplasm: phospho-MAPK is **increased** when growth factors are present, which may be an escape route [pmid:19047139].\n- Whole cell: proliferation is **decreased** and apoptosis is **increased** [pmid:15256422].\n- Nucleus: effects on gene transcription (for example via STAT5) are **unsupported** by the sources I retrieved.\n- Off-targets: the knowledge graph records binding to the drug transporter ABCB1 and receptor kinase NTRK1 (membrane), LCK (cytoplasm and membrane), and CYP3A4 and CYP2D6 (ER) [hetionet:CbG]. KIT and PDGFR are also targets [pmid:27030078]. The drug has 356 recorded side effects, including agranulocytosis and acute hepatic failure [hetionet:CcSE].\n\n**4. Evidence strength**\n- **Clinical (strong):** in a randomised trial with about 11 years of follow-up, 10-year overall survival was 83.3% and 82.8% of patients had a complete cytogenetic response [pmid:28273028].\n- **Structural (strong):** crystal structure [pdb:1IEP].\n- **In vitro (good):** cell-line and patient-cell studies cited above.\n- **Computational (weak):** the best docking pose scored −0.06 [dock:1IEP], just below the 0 cut-off usually considered good. This only ranks poses; it does not measure binding strength.",
       "model": "Claude",
       "source_ids": [
+        "hetionet:CbG",
+        "hetionet:GpCC",
         "pubchem:5291",
-        "uniprot:P00519",
-        "pdb:1IEP",
-        "pmid:10988075",
-        "pmid:12154025",
-        "pmid:16640460",
-        "pmid:17355866",
-        "pmid:12483533",
-        "pmid:15558795",
-        "pmid:18246120",
-        "pmid:28315715",
+        "pmid:14676625",
+        "pmid:12970766",
+        "pmid:15256422",
+        "pmid:19056677",
+        "pmid:19047139",
+        "pmid:27030078",
+        "hetionet:CcSE",
         "pmid:28273028",
-        "pmid:38820078",
-        "pmid:27217448"
-      ]
-    },
-    {
-      "agent": "skeptic",
-      "round": 1,
-      "text": "1. The statement that imatinib decreases STAT5 DNA binding and its target genes (Bcl-x, Mcl-1, c-Myc, and cyclin D2) is **unsupported** by direct evidence for imatinib. The cited source [pmid:12483533] reports these findings for the alternative BCR-ABL inhibitor PD180970.\n2. The claim that imatinib increases apoptosis in CML cells is **partially supported** [pmid:15558795]. However, one of the cited sources [pmid:12483533] refers to effects of PD180970, not imatinib.\n3. The statement regarding off-target cardiac mitochondrial dysfunction in heart cells [pmid:28315715] correctly highlights that these findings are from \"rat heart-like cells only,\" appropriately acknowledging the *in vitro* nature of the evidence.\n4. All other statements regarding imatinib's primary target, binding mechanism, off-target kinase inhibition (KIT, PDGFR, c-Src), BCR-ABL kinase activity blockade, Hck/STAT5b-driven IGF-1 signalling decrease, and the clinical and structural evidence are **well supported** by the cited literature [pubchem:5291; uniprot:P00519; pdb:1IEP; pmid:10988075; pmid:12154025; pmid:16640460; pmid:17355866; pmid:18246120; pmid:28273028; pmid:38820078; pmid:27217448].\n\nVerdict: CHALLENGED",
-      "model": "Gemini",
-      "source_ids": [
-        "pmid:12483533",
-        "pmid:15558795",
-        "pmid:28315715",
-        "pubchem:5291",
-        "uniprot:P00519",
         "pdb:1IEP",
-        "pmid:10988075",
-        "pmid:12154025",
-        "pmid:16640460",
-        "pmid:17355866",
-        "pmid:18246120",
-        "pmid:28273028",
-        "pmid:38820078",
-        "pmid:27217448"
-      ]
-    },
-    {
-      "agent": "proposer",
-      "round": 2,
-      "text": "**Response to reviewer**\n\nI accept point 1. The STAT5 DNA-binding/target-gene data in [pmid:12483533] were generated with PD180970, not imatinib; I flagged this as indirect, but the claim should be restated as a mechanistic inference about BCR-ABL kinase inhibition generally, not as evidence for imatinib. I will label it unsupported for imatinib specifically unless a direct source is added.\n\nOn point 2, I agree [pmid:12483533] should be dropped from that line; the apoptosis claim rests on [pmid:15558795] alone, which I consider adequate but of moderate strength.\n\nPoint 3 is a concession already made in the case: the Sab/JNK cardiac mitochondrial findings are in vitro rat cardiomyocyte-like cells [pmid:28315715] and are not evidence of clinical cardiotoxicity.\n\nI defend the remainder as the reviewer concedes: target identity, conformation-selective ATP-site binding [pmid:10988075; pmid:12154025; pmid:16640460], selectivity [pmid:17355866], and the clinical outcomes [pmid:28273028]. No docking evidence exists — correctly reported as absent.",
-      "model": "Claude",
-      "source_ids": [
-        "pmid:12483533",
-        "pmid:15558795",
-        "pmid:28315715",
-        "pmid:10988075",
-        "pmid:12154025",
-        "pmid:16640460",
-        "pmid:17355866",
-        "pmid:28273028"
+        "dock:1IEP"
       ]
     },
     {
       "agent": "judge",
-      "round": 3,
-      "text": "The proposer conceded the skeptic's challenges: the STAT5 nuclear effect is marked disputed because it was shown with PD180970, not imatinib, and the apoptosis claim now rests on one moderate-strength source. The core kinase blockade, IGF-1 signalling, structural and clinical claims were accepted by both sides.",
+      "round": 2,
+      "text": "No skeptic challenged the case, so the cited effects were accepted as agreed with moderate confidence, and uncited nuclear effects were marked speculative. The verdict carries a caveat that the case was not independently reviewed.",
       "model": "Claude",
       "source_ids": []
     }
   ],
   "reasoning_path": [
     {
-      "from": "imatinib",
-      "relation": "binds ATP site (inactive DFG-out conformation) of",
-      "to": "BCR-ABL (ABL1 kinase domain)",
-      "source_id": "pmid:10988075"
+      "from": "Imatinib",
+      "relation": "binds",
+      "to": "ABL1",
+      "source_id": "hetionet:CbG"
     },
     {
-      "from": "BCR-ABL (ABL1 kinase domain)",
-      "relation": "is locked inactive, blocking",
-      "to": "BCR-ABL kinase activity",
-      "source_id": "pmid:12154025"
+      "from": "ABL1",
+      "relation": "located in",
+      "to": "actin cytoskeleton",
+      "source_id": "hetionet:GpCC"
     },
     {
-      "from": "BCR-ABL kinase activity",
-      "relation": "occurs in",
+      "from": "actin cytoskeleton",
+      "relation": "is part of",
       "to": "cytoplasm",
-      "source_id": "pdb:1IEP"
+      "source_id": "hetionet:GpCC"
+    },
+    {
+      "from": "Imatinib",
+      "relation": "locks inactive conformation, blocks",
+      "to": "BCR-ABL tyrosine kinase activity",
+      "source_id": "pmid:14676625"
     },
     {
       "from": "BCR-ABL kinase inhibition",
-      "relation": "reduces",
-      "to": "Hck/STAT5b-driven IGF-1 signalling",
-      "source_id": "pmid:18246120"
-    },
-    {
-      "from": "BCR-ABL kinase inhibition",
-      "relation": "increases",
-      "to": "apoptosis of CML cells",
-      "source_id": "pmid:15558795"
+      "relation": "decreases proliferation and increases apoptosis of",
+      "to": "CML cells",
+      "source_id": "pmid:15256422"
     }
   ],
   "citations": [
@@ -202,34 +172,52 @@
       "pmid": null
     },
     {
-      "id": "pmid:12483533",
-      "title": "Inhibition of Bcr-Abl kinase activity by PD180970 blocks constitutive activation of Stat5 and growth of CML cells",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/12483533/",
-      "pmid": "12483533"
+      "id": "dock:1IEP",
+      "title": "DiffDock pose: imatinib → BCR-ABL (ABL1 kinase domain)",
+      "url": "https://www.rcsb.org/structure/1IEP",
+      "pmid": null
     },
     {
-      "id": "pmid:18246120",
-      "title": "Bcr-Abl induces autocrine IGF-1 signaling",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/18246120/",
-      "pmid": "18246120"
+      "id": "pmid:19056677",
+      "title": "BCR-ABL alternative splicing as a common mechanism for imatinib resistance: evidence from molecular dynamics simulations",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/19056677/",
+      "pmid": "19056677"
     },
     {
-      "id": "pmid:15558795",
-      "title": "Overproduction of BCR-ABL induces apoptosis in imatinib mesylate-resistant cell lines",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/15558795/",
-      "pmid": "15558795"
+      "id": "pmid:14676625",
+      "title": "Mechanisms and implications of imatinib resistance mutations in BCR-ABL",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/14676625/",
+      "pmid": "14676625"
     },
     {
-      "id": "pmid:28315715",
-      "title": "Sab mediates mitochondrial dysfunction involved in imatinib mesylate-induced cardiotoxicity",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/28315715/",
-      "pmid": "28315715"
+      "id": "pmid:15256422",
+      "title": "Inhibition of wild-type and mutant Bcr-Abl by AP23464, a potent ATP-based oncogenic protein kinase inhibitor: implications for CML",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/15256422/",
+      "pmid": "15256422"
     },
     {
-      "id": "pmid:38820078",
-      "title": "Asciminib in Newly Diagnosed Chronic Myeloid Leukemia",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/38820078/",
-      "pmid": "38820078"
+      "id": "pmid:19047139",
+      "title": "Effects of dasatinib on SRC kinase activity and downstream intracellular signaling in primitive chronic myelogenous leukemia hematopoietic cells",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/19047139/",
+      "pmid": "19047139"
+    },
+    {
+      "id": "hetionet:CbG",
+      "title": "Hetionet v1.0: Compound–binds–Gene (BindingDB, DrugBank, DrugCentral)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "hetionet:GpCC",
+      "title": "Hetionet v1.0: Gene–participates–Cellular Component (Gene Ontology)",
+      "url": "https://het.io/",
+      "pmid": null
+    },
+    {
+      "id": "hetionet:CcSE",
+      "title": "Hetionet v1.0: Compound–causes–Side Effect (SIDER)",
+      "url": "https://het.io/",
+      "pmid": null
     },
     {
       "id": "pmid:28273028",
@@ -238,43 +226,26 @@
       "pmid": "28273028"
     },
     {
-      "id": "pmid:27217448",
-      "title": "Final 5-Year Study Results of DASISION: The Dasatinib Versus Imatinib Study in Treatment-Naïve Chronic Myeloid Leukemia Patients Trial",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/27217448/",
-      "pmid": "27217448"
+      "id": "pmid:27030078",
+      "title": "Immunological off-target effects of imatinib",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27030078/",
+      "pmid": "27030078"
     },
     {
-      "id": "pmid:10988075",
-      "title": "Structural mechanism for STI-571 inhibition of abelson tyrosine kinase",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/10988075/",
-      "pmid": "10988075"
-    },
-    {
-      "id": "pmid:16640460",
-      "title": "A Src-like inactive conformation in the abl tyrosine kinase domain",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/16640460/",
-      "pmid": "16640460"
-    },
-    {
-      "id": "pmid:17355866",
-      "title": "c-Src binds to the cancer drug imatinib with an inactive Abl/c-Kit conformation and a distributed thermodynamic penalty",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/17355866/",
-      "pmid": "17355866"
-    },
-    {
-      "id": "pmid:12154025",
-      "title": "Crystal structures of the kinase domain of c-Abl in complex with the small molecule inhibitors PD173955 and imatinib (STI-571)",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/12154025/",
-      "pmid": "12154025"
+      "id": "pmid:12970766",
+      "title": "Phosphorylation of tyrosine 393 in the kinase domain of Bcr-Abl influences the sensitivity towards imatinib in vivo",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/12970766/",
+      "pmid": "12970766"
     }
   ],
   "caveats": [
-    "No docking was performed because the service was unavailable, so there is no computational binding score.",
-    "The STAT5 nuclear effects come from PD180970, not imatinib, and are not direct evidence for imatinib.",
-    "The cardiotoxicity findings come only from in vitro rat heart-like cells and do not demonstrate clinical cardiotoxicity.",
-    "Imatinib also inhibits KIT and PDGFR, which adopt the same inactive conformation, so not all observed effects can be attributed to BCR-ABL alone.",
-    "Downstream signalling evidence is lab-based and of moderate strength; the strongest evidence is structural and clinical (83.3% survival at about 11 years)."
+    "No skeptic review was available, so the case was not independently challenged.",
+    "The DiffDock best confidence (-0.06) is slightly below the usual cut-off and only ranks poses; it does not measure binding affinity.",
+    "Resistance mutations such as T315I, and BCR-ABL alternative splicing, can abolish imatinib binding.",
+    "Downstream signalling data come mainly from cell lines and primitive CML cells in vitro.",
+    "Off-target binding (KIT, PDGFR, LCK, ABCB1, CYP3A4/2D6) may contribute to side effects and is not shown.",
+    "Nuclear transcriptional effects (e.g. STAT5) were not supported by the retrieved sources."
   ],
-  "summary": "Imatinib fits into the switched-on cancer enzyme BCR-ABL in leukaemia cells and locks it in an 'off' shape, which helps the cancer cells die. This works well in patients long term, but some of the finer details of what happens next inside the cell rest on lab studies or on similar drugs rather than imatinib itself.",
+  "summary": "Imatinib attaches to the overactive BCR-ABL enzyme in the cytoplasm of chronic myeloid leukemia cells and locks it in an 'off' shape, so it can no longer send growth signals. As a result, the cancer cells grow less and die more, and long-term trials show most patients survive 10 years.",
   "from_cache": false
 }
