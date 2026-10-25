@@ -15,7 +15,7 @@ export function EffectLegend() {
   if (!result) return null;
 
   return (
-    <ul className="scroll-thin absolute bottom-28 left-4 z-10 flex max-h-[22%] max-w-[calc(100%-2rem)] flex-col gap-1.5 overflow-y-auto sm:bottom-4 sm:max-w-[min(22rem,calc(100%-13rem))] lg:bottom-28 lg:max-w-[calc(100%-2rem)] xl:bottom-4 xl:max-w-[min(22rem,calc(100%-13rem))]">
+    <ul className="scroll-thin absolute bottom-28 left-4 z-10 flex max-h-[38%] max-w-[calc(100%-2rem)] flex-col gap-1.5 overflow-y-auto sm:bottom-20 sm:max-w-[min(22rem,calc(100%-13rem))] lg:bottom-28 lg:max-w-[calc(100%-2rem)] xl:bottom-20 xl:max-w-[min(22rem,calc(100%-13rem))]">
       {result.effects.map((e, i) => (
         <li
           key={i}
