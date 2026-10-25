@@ -273,6 +273,7 @@ Region = Literal["membrane", "cytoplasm", "nucleus", "mitochondria", "er"]
 class JudgeTarget(BaseModel):
     name: str = Field(description="Target name as it appears in the evidence")
     cell_location: Region
+    role: Literal["primary", "off_target"] = Field(default="primary", description="primary for the main target, off_target for other documented binding partners")
 
 
 class JudgeEffect(BaseModel):

@@ -4,7 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, Pencil, Play, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageSquare, Pencil, Play, Plus, X } from "lucide-react";
 import { useHistory } from "@/lib/history";
 import { useLoadRun, useNewChat, useRunSimulation } from "@/lib/run";
 import { API_URL } from "@/lib/sse";
@@ -51,7 +51,7 @@ function useDrugSuggestions(query: string): string[] {
 }
 
 export function DrugPanel() {
-  const { status, parsed, input, setPrompt } = useSim();
+  const { status, parsed, input, setPrompt, runId } = useSim();
   const run = useRunSimulation();
   const { items, refresh, remove, clear } = useHistory();
   const loadRun = useLoadRun();
@@ -185,7 +185,10 @@ export function DrugPanel() {
         {items.map((h) => (
           <div
             key={h.id}
-            className="group flex items-start gap-1 border-l-2 border-transparent transition-colors hover:border-brand hover:bg-muted/40"
+            className={cn(
+              "group flex items-start gap-1 border-l-2 transition-colors hover:border-brand hover:bg-muted/40",
+              h.id === runId ? "border-brand bg-muted/40" : "border-transparent",
+            )}
           >
             <button
               disabled={running}
@@ -196,6 +199,14 @@ export function DrugPanel() {
               className="min-w-0 flex-1 py-2.5 pl-2.5 text-left text-sm disabled:opacity-40"
             >
               <span className="line-clamp-2">{h.label}</span>
+              {(h.chat_count ?? 0) > 0 && (
+                <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MessageSquare className="size-3 shrink-0" />
+                  <span className="shrink-0">{h.chat_count}</span>
+                  {h.id === runId && <span className="shrink-0 font-medium text-brand">Active</span>}
+                  <span className="truncate italic">{h.chat_preview}</span>
+                </span>
+              )}
             </button>
             <button
               aria-label="Delete from history"

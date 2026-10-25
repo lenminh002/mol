@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSim } from "@/lib/store";
 import { EffectTimeline } from "./EffectTimeline";
+import { IsolateToggle } from "./IsolateToggle";
 import { Narrator } from "./Narrator";
 
 const CellScene = dynamic(() => import("./cell/CellScene").then((m) => m.CellScene), { ssr: false });
@@ -19,7 +20,12 @@ export function Viewport() {
     <section className="relative h-[70svh] min-h-[480px] min-w-0 overflow-hidden rounded-md bg-background lg:h-auto lg:min-h-0">
       <CellScene />
 
-      {result && view === "cell" && <EffectTimeline />}
+      {view === "cell" && (
+        <div className="absolute right-4 top-4 z-10 flex w-[min(18rem,calc(100%-2rem))] flex-col gap-2">
+          {result && <EffectTimeline />}
+          <IsolateToggle />
+        </div>
+      )}
 
       {/* Stays mounted across views so narration keeps playing in the molecule view. */}
       {result && (

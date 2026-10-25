@@ -37,6 +37,9 @@ def test_chat_is_stored_with_the_run(tmp_path, monkeypatch):
     thread = [{"role": "user", "content": "why?"}, {"role": "assistant", "content": "because"}]
     db.save_chat(run_id, thread)
     assert db.get_run(run_id)["chat"] == thread
+    (item,) = db.list_runs()
+    assert item["chat_count"] == 2
+    assert item["chat_preview"] == "because"
 
 
 def test_rerun_keeps_the_replaced_runs_chat(tmp_path, monkeypatch):

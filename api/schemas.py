@@ -23,6 +23,7 @@ class Target(BaseModel):
     uniprot: str | None = None
     pdb_id: str | None = None
     cell_location: CellLocation
+    role: Literal["primary", "off_target"] = "primary"  # off-targets are other documented binding partners
     binding_score: float | None = None
     pose_pdb_url: str | None = None
 

@@ -115,9 +115,11 @@ export function usePersistChat() {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages }),
-    }).catch(() => {
-      saved.current = ""; // retry on the next change
-    });
+    })
+      .then(() => useHistory.getState().refresh())
+      .catch(() => {
+        saved.current = ""; // retry on the next change
+      });
   }, [messages, pending, runId]);
 }
 
