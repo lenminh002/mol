@@ -19,8 +19,10 @@ import { SignalWaves, type WaveSpec } from "./SignalWave";
 import { PlaybackDriver, TimeGate } from "./TimeGate";
 import { createSquishState, deformPoint, stepSquish, type SquishState } from "./squish";
 
-const HOME_CAMERA: [number, number, number, number, number, number] = [6, 5.4, 7, 0, 0, 0];
-const FOV = 40;
+const FOV = 28; // narrow lens keeps close organelles from stretching toward the screen edges
+// Direction of the original 40° framing, pulled back so the overview fills the same area at the narrower FOV.
+const HOME_SCALE = Math.tan(THREE.MathUtils.degToRad(20)) / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+const HOME_CAMERA: [number, number, number, number, number, number] = [6 * HOME_SCALE, 5.4 * HOME_SCALE, 7 * HOME_SCALE, 0, 0, 0];
 const FIT_RADIUS = 3.9; // membrane plus a little margin
 
 // Pull the home camera back on narrow (portrait) viewports so the whole cell fits horizontally.
@@ -128,6 +130,19 @@ function SceneInteraction({ controls, squish, active, focus, tooltip, ruler }: I
       window.removeEventListener("blur", clear);
     };
   }, [active]);
+
+  // Dolly-to-cursor drags the pivot toward whatever was zoomed on; ease it back to the cell
+  // centre as the camera retreats so zooming out always recovers a centred overview.
+  useFrame((_, dt) => {
+    const control = controls.current;
+    if (!active || !control || squish.dragging) return;
+    const pull = THREE.MathUtils.smoothstep(control.distance, 3, 7);
+    if (pull <= 0) return;
+    control.getTarget(scratch.target);
+    if (scratch.target.lengthSq() < 1e-6) return;
+    scratch.target.multiplyScalar(1 - (1 - Math.exp(-dt * 6)) * pull);
+    void control.setTarget(scratch.target.x, scratch.target.y, scratch.target.z, false);
+  });
 
   useFrame((_, dt) => {
     const control = controls.current;
@@ -363,7 +378,7 @@ export function CellScene() {
     if (!control) return;
     const token = ++navigation.current;
     const direction = control.getPosition(new THREE.Vector3()).sub(position).normalize();
-    const distance = target ? 1.7 : Math.max(0.62, radius * 2.5);
+    const distance = target ? 2.2 : Math.max(0.62, radius * 2.5);
     const eye = position.clone().addScaledVector(direction, distance);
     try {
       await control.setLookAt(eye.x, eye.y, eye.z, position.x, position.y, position.z, !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -378,7 +393,7 @@ export function CellScene() {
         <h2 className="font-heading text-4xl leading-none tracking-tight sm:text-5xl">Human cell<span className="text-brand">.</span></h2>
         <p className="mt-2 max-w-[260px] text-[10px] leading-relaxed text-muted-foreground">Illustrative human cell · Approximate scale; organelle counts reduced for clarity.</p>
       </div>
-      <Canvas camera={{ position: HOME_CAMERA.slice(0, 3) as [number, number, number], fov: FOV, near: 0.01, far: 100 }} dpr={[1, 1.75]} gl={{ antialias: true }}>
+      <Canvas camera={{ position: HOME_CAMERA.slice(0, 3) as [number, number, number], fov: FOV, near: 0.2, far: 100 }} dpr={[1, 1.75]} gl={{ antialias: true }}>
         <color attach="background" args={["#efece6"]} />
         <hemisphereLight args={["#fffaf0", "#b3a395", 2.1]} />
         <directionalLight position={[4, 8, 5]} intensity={3.2} color="#fff8ed" />
@@ -401,7 +416,7 @@ export function CellScene() {
         {targets[0] && <SignalWaves from={targets[0].position} waves={waves} squish={squish} />}
         <TimeGate from={PHASE.cascadeStart}><ReasoningPath points={path.points} surface={path.surface} squish={squish} /></TimeGate>
         <PlaybackDriver />
-        <CameraControls ref={controls} makeDefault minDistance={0.6} maxDistance={18} smoothTime={0.35} dollySpeed={5} dollyToCursor enabled={view === "cell"} touches={{ one: CameraControlsImpl.ACTION.TOUCH_ROTATE, two: CameraControlsImpl.ACTION.TOUCH_DOLLY_TRUCK, three: CameraControlsImpl.ACTION.TOUCH_TRUCK }} />
+        <CameraControls ref={controls} makeDefault minDistance={1} maxDistance={26} smoothTime={0.35} dollySpeed={5} dollyToCursor enabled={view === "cell"} touches={{ one: CameraControlsImpl.ACTION.TOUCH_ROTATE, two: CameraControlsImpl.ACTION.TOUCH_DOLLY_TRUCK, three: CameraControlsImpl.ACTION.TOUCH_TRUCK }} />
         <SceneInteraction controls={controls} squish={squish} active={view === "cell"} focus={focus} tooltip={tooltip} ruler={ruler} />
       </Canvas>
       <div ref={tooltip} role="status" className="pointer-events-none absolute left-0 top-0 z-20 whitespace-nowrap rounded border bg-card px-2.5 py-1.5 text-xs opacity-0 shadow-sm" />
