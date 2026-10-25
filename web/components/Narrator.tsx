@@ -100,7 +100,7 @@ export function Narrator() {
     <button
       onClick={onClick}
       title={state === "playing" ? "Stop narration" : enabled ? "Play narration" : "Narration is off — click to listen"}
-      className={`flex size-7 shrink-0 items-center justify-center rounded-full border bg-card/80 backdrop-blur transition-colors hover:border-brand ${
+      className={`flex size-8 shrink-0 items-center justify-center rounded-full border bg-card transition-colors hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
         state === "playing" ? "border-brand text-brand" : "text-muted-foreground"
       }`}
     >

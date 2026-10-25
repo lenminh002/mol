@@ -27,7 +27,7 @@ const randomSuggestion = (not?: string) => {
 };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{children}</h3>;
+  return <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{children}</h3>;
 }
 
 // PubChem-backed drug name suggestions, debounced.
@@ -82,7 +82,7 @@ export function DrugPanel() {
   const fromPrompt = parsed && input.prompt;
 
   return (
-    <aside className="scroll-thin flex flex-col gap-5 overflow-y-auto rounded-xl border bg-card p-4">
+    <aside className="scroll-thin flex min-w-0 flex-col gap-5 overflow-y-auto rounded-md border bg-card p-3.5">
       <section className="flex flex-col gap-2">
         <SectionLabel>Ask</SectionLabel>
         <Textarea
@@ -153,7 +153,7 @@ export function DrugPanel() {
         {items.map((h) => (
           <div
             key={h.id}
-            className="group flex items-start gap-1 rounded-lg border bg-background/40 transition-colors hover:border-brand"
+            className="group flex items-start gap-1 rounded border bg-background/50 transition-colors hover:border-brand/60"
           >
             <button
               disabled={running}

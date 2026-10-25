@@ -98,9 +98,9 @@ export function DebatePanel() {
   }, [debate.length, result, running]);
 
   return (
-    <aside ref={scroller} className="scroll-thin flex flex-col gap-3 overflow-y-auto rounded-xl border bg-card p-4">
+    <aside ref={scroller} className="scroll-thin flex min-w-0 flex-col gap-3 overflow-y-auto rounded-md border bg-card p-3.5">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Reasoning</h2>
+        <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Reasoning</h2>
         <div className="flex items-center gap-1.5">
           {result?.from_cache && input.preset && (
             <Button
@@ -161,7 +161,7 @@ export function DebatePanel() {
       {debate.map((turn, i) => {
         const a = AGENTS[turn.agent];
         return (
-          <div key={i} className={`rounded-lg border bg-background/50 p-3 ${a.color}`}>
+          <div key={i} className={`rounded border bg-background/40 p-3 ${a.color}`}>
             <div className="mb-1 text-xs font-medium">
               {a.label}{" "}
               <span className="text-muted-foreground">
@@ -174,7 +174,7 @@ export function DebatePanel() {
       })}
 
       {result && result.caveats.length > 0 && (
-        <div className="rounded-lg border p-3 text-xs text-muted-foreground">
+        <div className="rounded border p-3 text-xs leading-relaxed text-muted-foreground">
           <div className="mb-1 font-medium text-foreground">Caveats</div>
           <ul className="list-disc pl-4">
             {result.caveats.map((c, i) => (

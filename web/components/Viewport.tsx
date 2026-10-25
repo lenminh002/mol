@@ -16,14 +16,14 @@ export function Viewport() {
   const { view, result } = useSim();
 
   return (
-    <section className="relative h-[65vh] overflow-hidden rounded-xl border bg-card lg:h-auto">
+    <section className="relative h-[70svh] min-h-[480px] min-w-0 overflow-hidden rounded-md border bg-background lg:h-auto lg:min-h-0">
       <CellScene />
 
       {result && view === "cell" && (
         <>
-          <div className="absolute left-12 top-3 max-w-sm" title={result.summary}>
+          <div className="pointer-events-none absolute left-14 right-4 top-[6.5rem] z-10 max-w-sm rounded-md border bg-card/95 px-3 py-2" title={result.summary}>
             <div className="text-sm font-medium">{result.drug.name}</div>
-            {result.summary && <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{result.summary}</p>}
+            {result.summary && <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{result.summary}</p>}
           </div>
           <EffectLegend />
         </>
@@ -31,7 +31,7 @@ export function Viewport() {
 
       {/* Stays mounted across views so narration keeps playing in the molecule view. */}
       {result && (
-        <div className={view === "cell" ? "absolute left-3 top-3" : "hidden"}>
+        <div className={view === "cell" ? "absolute left-4 top-[6.5rem] z-10" : "hidden"}>
           <Narrator />
         </div>
       )}

@@ -15,13 +15,13 @@ export function EffectLegend() {
   if (!result) return null;
 
   return (
-    <ul className="absolute bottom-3 left-3 flex max-w-md flex-col gap-1.5">
+    <ul className="scroll-thin absolute bottom-28 left-4 z-10 flex max-h-[22%] max-w-[calc(100%-2rem)] flex-col gap-1.5 overflow-y-auto sm:bottom-4 sm:max-w-[min(22rem,calc(100%-13rem))] lg:bottom-28 lg:max-w-[calc(100%-2rem)] xl:bottom-4 xl:max-w-[min(22rem,calc(100%-13rem))]">
       {result.effects.map((e, i) => (
         <li
           key={i}
           onMouseEnter={() => setHighlight(e.organelle)}
           onMouseLeave={() => setHighlight(null)}
-          className={`cursor-default rounded-md border bg-card/85 px-2 py-1 text-xs backdrop-blur ${STATUS_STYLE[e.status]}`}
+          className={`cursor-default rounded border bg-card/95 px-2.5 py-1.5 text-[11px] leading-relaxed ${STATUS_STYLE[e.status]}`}
         >
           <span className="mr-1">{DIRECTION[e.direction]}</span>
           <span className="font-medium">{e.pathway}</span>

@@ -39,7 +39,7 @@ function Node({ label, drugNames }: { label: string; drugNames: string[] }) {
   const l = label.toLowerCase();
   const isDrug = drugNames.some((d) => l.includes(d) || (l.length > 4 && d.includes(l)));
   const tone = isDrug
-    ? "border-yellow-300/60 text-yellow-200"
+    ? "border-amber-600/35 bg-amber-50/60 text-amber-700"
     : region
       ? "border-brand/60 text-brand cursor-pointer"
       : "border-border text-foreground";
@@ -48,7 +48,7 @@ function Node({ label, drugNames }: { label: string; drugNames: string[] }) {
       onMouseEnter={() => region && setHighlight(region)}
       onMouseLeave={() => region && setHighlight(null)}
       title={region ? "Highlight in the cell" : undefined}
-      className={`w-fit max-w-full rounded-md border bg-background/60 px-2 py-1 text-xs ${tone}`}
+      className={`w-fit max-w-full rounded border bg-background/60 px-2 py-1 text-xs ${tone}`}
     >
       {label}
     </span>
@@ -83,7 +83,7 @@ export function ReasoningGraph() {
   const drugNames = [result.drug.name, result.reasoning_path[0].from].map((n) => n.toLowerCase());
 
   return (
-    <div className="rounded-lg border p-3">
+    <div className="rounded border p-3">
       <div className="mb-2 text-xs font-medium">
         Reasoning path <span className="font-normal text-muted-foreground">· hover a cell region to see it</span>
       </div>

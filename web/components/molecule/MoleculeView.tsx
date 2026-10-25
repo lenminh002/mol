@@ -23,8 +23,8 @@ interface Props {
   onReady?: () => void;
 }
 
-const BACKGROUND = Color(0x070b14);
-const DRUG_COLOR = Color(0xfde047);
+const BACKGROUND = Color(0xefece6);
+const DRUG_COLOR = Color(0xd97706);
 
 // Mol* rendering engine embedded without its own UI, so it sits inside our layout.
 export function MoleculeView({ info, poseUrl, onReady }: Props) {
@@ -85,7 +85,7 @@ export function MoleculeView({ info, poseUrl, onReady }: Props) {
           const loci = StructureSelection.toLociWithSourceUnits(Script.getStructureSelection(expression, structure));
           if (loci.elements.length > 0) {
             if (ligands?.length) {
-              // The drug in Mol yellow (matches the drug particles in the cell view).
+              // Amber matches the drug particles in the cell view.
               const drug = await plugin.builders.structure.tryCreateComponentFromExpression(
                 ref.cell, expression, "mol-drug", { label: "Drug" },
               );

@@ -49,11 +49,11 @@ export function MoleculePanel() {
         </div>
       )}
 
-      <div className="absolute left-3 top-3 flex max-w-sm flex-col gap-2">
+      <div className="absolute left-3 right-3 top-3 flex max-w-sm flex-col gap-2">
         <Button variant="outline" size="sm" className="w-fit" onClick={() => selectTarget(null)}>
           <ArrowLeft /> Back to cell
         </Button>
-        <div className="rounded-lg border bg-card/90 p-3 text-xs backdrop-blur">
+        <div className="rounded-md border bg-card/95 p-3 text-xs">
           <div className="text-sm font-medium">
             {result?.drug.name} <span className="text-muted-foreground">→ {target.name}</span>
           </div>
@@ -84,7 +84,7 @@ export function MoleculePanel() {
       </div>
 
       {info && info.residues.length > 0 && (
-        <div className="absolute bottom-3 left-3 right-3 rounded-lg border bg-card/90 text-xs backdrop-blur">
+        <div className="scroll-thin absolute bottom-3 left-3 right-3 max-h-[40%] overflow-y-auto rounded-md border bg-card/95 text-xs">
           <button
             onClick={() => setShowResidues((v) => !v)}
             className="flex w-full items-center gap-1.5 p-2.5 text-left"
