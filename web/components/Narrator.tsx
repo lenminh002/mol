@@ -24,10 +24,25 @@ export function Narrator() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlRef = useRef<string | null>(null);
 
-  useEffect(() => setEnabled(readPref()), []);
+  const [prefLoaded, setPrefLoaded] = useState(false);
+  const reqRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
 
+  useEffect(() => {
+    setEnabled(readPref());
+    setPrefLoaded(true);
+  }, []);
+
+  // Invalidates any in-flight play() so overlapping calls can never start a second Audio.
   function stop() {
-    audioRef.current?.pause();
+    reqRef.current++;
+    abortRef.current?.abort();
+    abortRef.current = null;
+    if (audioRef.current) {
+      audioRef.current.onended = null;
+      audioRef.current.ontimeupdate = null;
+      audioRef.current.pause();
+    }
     audioRef.current = null;
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
     urlRef.current = null;
@@ -38,15 +53,21 @@ export function Narrator() {
   async function play() {
     if (!result?.summary) return;
     stop();
+    const id = reqRef.current;
+    const controller = new AbortController();
+    abortRef.current = controller;
     setState("loading");
     try {
       const resp = await fetch(`${API_URL}/tts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: result.summary }),
+        signal: controller.signal,
       });
       if (!resp.ok) throw new Error(`tts ${resp.status}`);
-      const url = URL.createObjectURL(await resp.blob());
+      const blob = await resp.blob();
+      if (id !== reqRef.current) return;
+      const url = URL.createObjectURL(blob);
       urlRef.current = url;
       const audio = new Audio(url);
       audioRef.current = audio;
@@ -58,10 +79,14 @@ export function Narrator() {
         const i = Math.min(regions.length - 1, Math.floor((audio.currentTime / audio.duration) * regions.length));
         setHighlight(regions[i]);
       };
-      audio.onended = stop;
+      audio.onended = () => {
+        if (audioRef.current === audio) stop();
+      };
       await audio.play();
+      if (id !== reqRef.current) return;
       setState("playing");
     } catch (e) {
+      if (id !== reqRef.current) return;
       // Autoplay blocked or narration unavailable: leave the button for a manual retry.
       setState((e as Error).message?.startsWith("tts 503") ? "unavailable" : "idle");
       setHighlight(null);
@@ -70,10 +95,10 @@ export function Narrator() {
 
   // Auto-narrate each new verdict when narration is on.
   useEffect(() => {
-    if (result && enabled) play();
+    if (result && prefLoaded && enabled) play();
     return stop;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result]);
+  }, [result, prefLoaded]);
 
   // One button: stopping turns auto-narration off; playing turns it back on.
   function setPref(on: boolean) {
