@@ -19,20 +19,21 @@ export function Viewport() {
     <section className="relative h-[70svh] min-h-[480px] min-w-0 overflow-hidden rounded-md bg-background lg:h-auto lg:min-h-0">
       <CellScene />
 
-      {result && view === "cell" && (
-        <>
-          <div className="pointer-events-none absolute left-14 right-4 top-[6.5rem] z-10 max-w-sm rounded-md border bg-card/95 px-3 py-2" title={result.summary}>
-            <div className="text-sm font-medium">{result.drug.name}</div>
-            {result.summary && <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{result.summary}</p>}
-          </div>
-          <EffectLegend />
-        </>
-      )}
+      {result && view === "cell" && <EffectLegend />}
 
       {/* Stays mounted across views so narration keeps playing in the molecule view. */}
       {result && (
-        <div className={view === "cell" ? "absolute left-4 top-[6.5rem] z-10" : "hidden"}>
-          <Narrator />
+        <div
+          className={view === "cell" ? "pointer-events-none absolute left-4 right-4 top-[9.25rem] z-10 max-w-sm py-2" : "hidden"}
+          title={result.summary}
+        >
+          <div className="flex min-h-8 items-center gap-2 text-sm font-medium">
+            {result.drug.name}
+            <div className="pointer-events-auto">
+              <Narrator />
+            </div>
+          </div>
+          {result.summary && <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{result.summary}</p>}
         </div>
       )}
 
